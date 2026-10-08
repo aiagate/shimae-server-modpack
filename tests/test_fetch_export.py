@@ -112,6 +112,14 @@ class FetchExportTests(unittest.TestCase):
         conn.getresponse.return_value.read.assert_called_once_with(101)
         conn.close.assert_called_once()
 
+    def test_reviewed_asset_name_and_size_are_checked_before_zip_download(self):
+        for changes in ({'name': 'other.zip'}, {'size': len(self.blob) + 1}):
+            factory = Mock(return_value=self.metadata(name='reviewed.zip', **changes)
+                           if 'name' not in changes else self.metadata(**changes))
+            with self.subTest(changes=changes), self.assertRaises(f.Invalid):
+                f.fetch(self.config, factory, expected_name='reviewed.zip', expected_size=len(self.blob))
+            factory.assert_called_once()
+
     def test_cli_never_saves_unvalidated_or_overwrites_existing_output(self):
         with tempfile.TemporaryDirectory() as d:
             root = Path(d)

@@ -1,0 +1,63 @@
+{
+  "overrides/config/apothic_spawners.cfg": [
+    "3b43752804fd971f7dc402d423e3c485cc8428920d651b374b3996dfe6749500"
+  ],
+  "overrides/config/c2me.toml": [
+    "29d8e554253c17366563f46f334109c4354128f2e8d06c1e0776cd6657450cbb",
+    "8b1b1d7d567300dab2a116304f738f509ca457a9b8c0a0f1ffcbcdf9e424a315"
+  ],
+  "overrides/config/carryon-client.toml": [
+    "8f686e9f072eb319ef267f0f2c3b99bac1244028e37ea644fa810dee97eb8dc1"
+  ],
+  "overrides/config/carryon-common.toml": [
+    "0af7b460d88199ded47ca1bad1c212a9fd08a6744038e3621acf9339bc38ca8e",
+    "6fc3334ade46aab418bc9887ebaee95a273ffd2bbf10207d185634158e3548d4",
+    "d81c5096db7f185a0dbeb4bb7835a444f45194808d92cb25d56ac63bec72b504"
+  ],
+  "overrides/config/constructionwand-client.toml": [
+    "08bc9601c35590ec375557c3ac6cc812f51f2ab60396e5f9f3bf85b3c8b452c5"
+  ],
+  "overrides/config/curios-common.toml": [
+    "b5618449b15300869958c1f445d6261caed49e8f2046f4d643c08bbbac85ca66"
+  ],
+  "overrides/config/DistantHorizons.toml": [
+    "013d9c138bb5fd1f5c5f73b010f15f9f0d00149d23fa6062340a9a552962faea",
+    "cfa2f61682d22d5917e05021cb51e11b089566359287d3cc24a7a6a9c5e9237a",
+    "ff58bc116d3d43d2e2d6bda871efe133721dd27e56b919a93f55e49f493976d4"
+  ],
+  "overrides/config/lithium.properties": [
+    "d62a5b0354230cc3286c46a5c5a27011d899176fca6e22d80c6b367d2af5a573"
+  ],
+  "overrides/config/placebo.cfg": [
+    "3b43752804fd971f7dc402d423e3c485cc8428920d651b374b3996dfe6749500"
+  ],
+  "overrides/config/quark-common.toml": [
+    "2120d468b47edee70bad52b888eb87cdab1c6f5b7a16f68efd7676b466b99490",
+    "2de8a2ea7cedde9f89eb43f00af60df4f36e623a84226e5d5ed8b847fa5140b4",
+    "738f34aa849cdbd330c25768dae72e8638cff763dcde432d496059c07e0f9876",
+    "8baf6557179de5653ed9503b8db23b1b1e46894d45d34a7bc45d3da29a050918"
+  ],
+  "overrides/config/sodium-mixins.properties": [
+    "c528f798a4347c9deca4fc01c553e7264bc655511df290c04114efad48022895"
+  ],
+  "overrides/config/apotheosis/apotheosis.cfg": [
+    "3b43752804fd971f7dc402d423e3c485cc8428920d651b374b3996dfe6749500"
+  ],
+  "overrides/config/apotheosis/apothic_attributes.cfg": [
+    "3b43752804fd971f7dc402d423e3c485cc8428920d651b374b3996dfe6749500",
+    "99164673e660b4b28302645fb894027bcf7bae35d4390990ca7da65ec5413a30"
+  ],
+  "overrides/config/apotheosis/apothic_enchanting.cfg": [
+    "3b43752804fd971f7dc402d423e3c485cc8428920d651b374b3996dfe6749500"
+  ],
+  "overrides/config/apotheosis/name_generation.cfg": [
+    "3b43752804fd971f7dc402d423e3c485cc8428920d651b374b3996dfe6749500"
+  ],
+  "overrides/config/tabtps/themes/default.conf": [
+    "4cbad762ddc47baf099bf659734b45d4ae5086c56f5adb2712afa8a19a040eb4"
+  ],
+  "overrides/config/apotheosis/enchantments.cfg": [
+    "3b43752804fd971f7dc402d423e3c485cc8428920d651b374b3996dfe6749500",
+    "e5334fdccff58b248bc3be1e54949f5a7b0964319b49808955b1204be1883ada"
+  ]
+}

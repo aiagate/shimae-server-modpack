@@ -53,6 +53,67 @@ class ReleaseTests(unittest.TestCase):
                     r.Invalid, 'local reconstruction draft'):
                 r.validate(b, c)
 
+    def test_official_shader_modlist_links_allowed_without_broader_url_exemption(self):
+        for path in ('complementary-unbound', 'solas-shader'):
+            b, c = self.fixture({'modlist.html':
+                '<a href="https://www.curseforge.com/minecraft/shaders/' + path + '">shader</a>'})
+            self.assertEqual(r.validate(b, c), c['reviewed_sha256'])
+        for url in ('https://www.curseforge.com.evil.invalid/minecraft/shaders/solas-shader',
+                    'https://www.curseforge.com/minecraft/shaders/solas-shader?token=dummy-secret',
+                    'https://dummy-secret@www.curseforge.com/minecraft/shaders/solas-shader',
+                    'https://www.curseforge.com/minecraft/shaders/solas-shader/other'):
+            b, c = self.fixture({'modlist.html': '<a href="' + url + '">shader</a>'})
+            with self.subTest(url=url), self.assertRaises(r.Invalid):
+                r.validate(b, c)
+
+    def test_reviewed_comment_is_bound_to_exact_line_and_config_path(self):
+        name = 'overrides/config/c2me.toml'
+        comment = '# Density function: https://minecraft.wiki/w/Density_function'
+        b, c = self.fixture({name: comment + '\nenabled = true\n'})
+        self.assertEqual(r.validate(b, c), c['reviewed_sha256'])
+        for path, text in ((name, comment + ' endpoint=https://example.invalid'),
+                           (name, comment[2:]),
+                           (name, comment + '\nhost=server.internal'),
+                           ('overrides/config/other.toml', comment),
+                           (name, '# endpoint=https://example.invalid'),
+                           (name, '# api_key="dummy-secret"'),
+                           (name, comment + '\u0000')):
+            b, c = self.fixture({path: text})
+            with self.subTest(path=path, text=text), self.assertRaises(r.Invalid):
+                r.validate(b, c)
+
+    def test_reviewed_documentation_does_not_exempt_credentials(self):
+        from tempfile import NamedTemporaryFile
+        name = 'overrides/config/example.toml'
+        comment = '# api_key="dummy-secret"'
+        # Even an erroneous future policy entry cannot whitelist a credential.
+        with NamedTemporaryFile(mode='w+', suffix='.json') as policy:
+            json.dump({name: [hashlib.sha256(comment.encode()).hexdigest()]}, policy)
+            policy.flush()
+            with patch.object(r, 'REVIEWED_COMMENTS_PATH', Path(policy.name)):
+                b, c = self.fixture({name: comment})
+                with self.assertRaises(r.Invalid):
+                    r.validate(b, c)
+
+    def test_empty_app_author_preserved_but_nonstring_author_rejected(self):
+        b, c = self.fixture(change=lambda m: m.update(author=''))
+        self.assertEqual(r.validate(b, c), c['reviewed_sha256'])
+        for author in (None, 1, False):
+            b, c = self.fixture(change=lambda m: m.update(author=author))
+            with self.subTest(author=author), self.assertRaises(r.Invalid):
+                r.validate(b, c)
+
+    def test_apotheosis_documentation_exception_is_exact_and_never_allows_credentials(self):
+        name = 'overrides/config/apotheosis/enchantments.cfg'
+        comment = '# File Specification: https://gist.github.com/Shadows-of-Fire/88ac714a758636c57a52e32ace5474c1'
+        b, c = self.fixture({name: comment + '\n'})
+        self.assertEqual(r.validate(b, c), c['reviewed_sha256'])
+        for path, line in [(name, comment + ' changed'), ('overrides/config/other.cfg', comment),
+                           (name, comment + '\n# api_key="synthetic-not-real"')]:
+            b, c = self.fixture({path: line})
+            with self.subTest(path=path), self.assertRaises(r.Invalid):
+                r.validate(b, c)
+
     def test_paths_and_private_files(self):
         for name in ('../escape', '/absolute', 'overrides/../escape',
                      'overrides\\escape', 'C:/escape', 'wrapper/manifest.json',

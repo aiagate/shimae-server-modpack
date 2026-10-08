@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "repository": "aiagate/shimae-server-modpack",
+  "version": "0.0.1",
+  "minecraft_version": "1.21.1",
+  "mod_loader": "neoforge-21.1.243",
+  "profiles": {
+    "client": {
+      "asset_id": 621353663,
+      "filename": "shimae-server-modpack-0.0.1.zip",
+      "sha256": "b27742177d000e581a6b9ea0bd1540929ac291018ab70ef11f9bd1193dacd81c",
+      "size_bytes": 430127,
+      "manifest_name": "Shimae Server Modpack",
+      "reference_lock": "exports/client.refs.json",
+      "origin": {
+        "exporter": "CurseForge App",
+        "confirmed": true,
+        "confirmed_by": "User supplied this ZIP in response to the request for a client App Export; App execution was not independently observed.",
+        "exported_at": "Export time not recorded; received 2026-10-08.",
+        "source_profile": "Manifest name: Shimae Server Modpack; profile UI not independently observed.",
+        "packaging": "cleaned-copy-with-unchanged-app-manifest",
+        "original_sha256": "042de1c25ce9995f04eac015ba9e6db257749a677c5ad02f50293b5decac7cf8",
+        "manifest_sha256": "91c40ad018a732ff58a984cddd3daf9209618ab53f4a69c04e35b2de616e7e12",
+        "modlist_sha256": "68b73bda0d72d3d8ec770e5a4f2ec13378ed9815a6b5bee01e14843b606a3bf6"
+      }
+    }
+  }
+}
