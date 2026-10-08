@@ -2,7 +2,7 @@
 
 Minecraft `1.21.1` / NeoForge `21.1.243`のModPackを、CurseForge project **1733082**で公開するためのリポジトリです。正式投稿の入力は、本人がCurseForge Appから出力した**クライアントExport ZIP 1つ**です。Appが出力したmanifestは編集しません。サーバープロフィールのExportは公開の前提にしません。
 
-`Shimae Server Modpack-0.0.1.zip`を受領し、199参照と全File IDの一致、MC/loader、CRCと構造を確認しました。原本は保全し、不要状態11件の除外とライセンス文書2件の付属だけを行った提出候補をローカル検査済みです。manifest・modlist・残した設定本文は原本とバイト一致します。公開asset IDは未登録で、まだ公開・提出していません。Appでの出力操作を独立に観察したという証明は付けません。
+`Shimae Server Modpack-0.0.1.zip`を受領し、199参照と全File IDの一致、MC/loader、CRCと構造を確認しました。原本は保全し、不要状態11件の除外とライセンス文書2件の付属だけを行った提出候補をローカル検査済みです。manifest・modlist・残した設定本文は原本とバイト一致します。GitHub Release asset ID `621353663`を登録済みです。CurseForge提出・審査・公開は別に確認します。Appでの出力操作を独立に観察したという証明は付けません。
 
 ## 本人に必要な入力作成
 
@@ -36,9 +36,9 @@ python3 scripts/release.py --zip /path/client-app-export.zip
 
 `submit.yml`はmainからの手動起動のみです。`submit=false`でclient ZIPを取得・検査し、投稿メタデータとCHANGELOGも確認します。検査済みclient ZIPを単独artifact、SHA256SUMSとreceiptを別artifactとして14日保存します。server artifactは必須にしません。
 
-`submit=true`では既存`curseforge` Environmentの承認後、同じrunのclient artifact IDだけを固定して取得します。`skip-decompress:true`で元ZIPを展開せず、同じcommitの設定とSHAを再検査し、同じバイトを一度だけUpload APIへPOSTします。API受付は審査・公開完了とは区別します。受付不明時は作者画面で確認し、自動再送しません。
+`submit=true`では既存`curseforge` Environmentを利用して、同じrunのclient artifact IDだけを固定して取得します。`skip-decompress:true`で元ZIPを展開せず、同じcommitの設定とSHAを再検査し、同じバイトを一度だけUpload APIへPOSTします。API受付は審査・公開完了とは区別します。受付不明時は作者画面で確認し、自動再送しません。
 
-既存Secret `CURSEFORGE_API_TOKEN`、Variable `CURSEFORGE_SUBMISSION_ENABLED=true`、main制限と利用可能な承認ゲートを利用します。このローカル修正でSecretや権限を設定しません。Token値はチャット・Git・コマンド引数・ログへ載せません。
+既存Secret `CURSEFORGE_API_TOKEN`、Variable `CURSEFORGE_SUBMISSION_ENABLED=true`、workflowのmain限定・手動起動を利用します。Environmentの保護ルールは現在ありません。このローカル修正でSecretや権限を設定しません。Token値はチャット・Git・コマンド引数・ログへ載せません。
 
 公開までには、修正のPR反映・CI・レビューとマージ、正本asset登録、手動検査とclient提出、CurseForge審査と作者画面での手動公開が必要です。完了はCurseForgeで利用者がインストールできる公開状態を確認して判断します。Git入力・Release・artifactが公開される運用は本人確認済みです。
 

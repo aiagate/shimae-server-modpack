@@ -6,7 +6,7 @@
   "mod_loader": "neoforge-21.1.243",
   "profiles": {
     "client": {
-      "asset_id": null,
+      "asset_id": 621353663,
       "filename": "shimae-server-modpack-0.0.1.zip",
       "sha256": "b27742177d000e581a6b9ea0bd1540929ac291018ab70ef11f9bd1193dacd81c",
       "size_bytes": 430127,
