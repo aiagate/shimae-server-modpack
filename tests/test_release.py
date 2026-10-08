@@ -218,6 +218,7 @@ class ReleaseTests(unittest.TestCase):
             factory = Mock()
             conn = factory.return_value
             conn.getresponse.return_value.status = status
+            conn.getresponse.return_value.read.return_value = b'{}'
             with self.assertRaises(r.Invalid):
                 r.submit(b, c, {}, 'dummy-token', factory)
             conn.request.assert_called_once()
@@ -229,7 +230,7 @@ class ReleaseTests(unittest.TestCase):
             r.submit(b, c, {}, '', factory)
         factory.assert_not_called()
 
-    def test_http_diagnostics_do_not_read_or_record_untrusted_server_text(self):
+    def test_http_diagnostics_record_only_whitelisted_projection_of_server_text(self):
         b, c = self.fixture()
         for status in (302, 401, 403, 429, 500):
             factory = Mock()
@@ -243,10 +244,12 @@ class ReleaseTests(unittest.TestCase):
                 r.submit(b, c, {}, 'dummy-token', factory)
             self.assertEqual(error.exception.diagnostics, {
                 'category': 'http_non_success', 'phase': 'response_headers',
-                'http_status': status, 'response_body_recorded': False})
+                'http_status': status, 'response_body_recorded': False,
+                'response_summary': {'response_format': 'non_json',
+                                     'validation_fields': [], 'validation_codes': []}})
             self.assertNotIn('dummy-token', str(error.exception))
             self.assertNotIn('user@example.invalid', json.dumps(error.exception.diagnostics))
-            response.read.assert_not_called()
+            response.read.assert_called_once_with(65537)
             response.getheader.assert_not_called()
             conn.request.assert_called_once()
 
@@ -328,8 +331,40 @@ class ReleaseTests(unittest.TestCase):
             for forbidden in ('dummy-token', 'user@example.invalid', 'X-Api-Token'):
                 self.assertNotIn(forbidden, logs.getvalue() + receipt.read_text())
             self.assertIn('HTTP 403', logs.getvalue())
-            response.read.assert_not_called()
+            response.read.assert_called_once_with(65537)
             factory.return_value.request.assert_called_once()
+
+    def test_validation_projection_drops_free_text_unknown_fields_and_codes(self):
+        raw = json.dumps({'errorCode': 400, 'errorMessage': 'dummy-token user@example.invalid',
+                          'errors': {'metadata.gameVersions[0]': [{'code': 'invalid_value',
+                                     'message': 'dummy-token'}],
+                                     'dummy-token': [{'code': 'dummy-token'}]},
+                          'validationErrors': [{'field': 'releaseType', 'code': 'required',
+                                                'message': 'user@example.invalid'},
+                                               {'field': 'user@example.invalid', 'code': 'private'}]})
+        self.assertEqual(r.safe_api_error(raw), {
+            'response_format': 'json_object', 'error_code': 400,
+            'validation_fields': ['gameVersions', 'releaseType'],
+            'validation_codes': ['invalid_value', 'required']})
+        for raw in (b'private non-json dummy-token', b'a' * 65537,
+                    b'{"errorCode":"dummy-token","errors":{"password":["dummy-token"]}}',
+                    b'{"errorCode":123456789,"message":"user@example.invalid"}'):
+            result = json.dumps(r.safe_api_error(raw))
+            for text in ('dummy-token', 'password', 'user@example.invalid', '123456789'):
+                self.assertNotIn(text, result)
+
+    def test_error_response_read_failure_keeps_original_http_rejection(self):
+        b, c = self.fixture()
+        factory = Mock()
+        conn = factory.return_value
+        conn.getresponse.return_value.status = 400
+        conn.getresponse.return_value.read.side_effect = TimeoutError('dummy-token')
+        with self.assertRaises(r.SubmissionError) as error:
+            r.submit(b, c, {}, 'dummy-token', factory)
+        self.assertEqual(error.exception.diagnostics['http_status'], 400)
+        self.assertEqual(error.exception.diagnostics['category'], 'http_non_success')
+        self.assertEqual(error.exception.diagnostics['response_summary']['response_format'], 'read_failed')
+        conn.request.assert_called_once()
 
     def test_dry_run_no_network(self):
         import tempfile
