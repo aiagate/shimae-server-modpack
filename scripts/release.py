@@ -225,7 +225,18 @@ ERROR_FIELDS = frozenset(('metadata', 'file', 'projectId', 'projectID', 'changel
                          'releaseType', 'isMarkedForManualRelease', 'parentFileID', 'relations'))
 ERROR_CODES = frozenset(('required', 'invalid', 'invalid_value', 'not_found',
                         'unknown_game_version', 'invalid_game_version', 'invalid_release_type',
-                        'invalid_metadata', 'project_not_approved'))
+                        'invalid_metadata', 'project_not_approved', 'bad_request',
+                        'unauthorized', 'forbidden', 'invalid_api_token', 'token_expired'))
+MESSAGE_HINTS = {
+    'invalid_authentication': re.compile(r'(?:invalid|expired|revoked|not valid).{0,40}(?:token|api.?key)|'
+                                         r'(?:token|api.?key).{0,40}(?:invalid|expired|revoked|not valid)'),
+    'missing_authentication': re.compile(r'(?:missing|required|not provided).{0,40}(?:token|api.?key)|'
+                                         r'(?:token|api.?key).{0,40}(?:missing|required|not provided)'),
+    'invalid_header': re.compile(r'(?:invalid|malformed).{0,40}header|header.{0,40}(?:invalid|malformed)'),
+    'invalid_game_version': re.compile(r'(?:invalid|unknown|not found).{0,40}game.?version|'
+                                      r'game.?version.{0,40}(?:invalid|unknown|not found)'),
+    'project_not_approved': re.compile(r'project.{0,40}(?:not approved|unapproved|pending approval)'),
+}
 
 
 def safe_api_error(raw):
@@ -241,19 +252,16 @@ def safe_api_error(raw):
     summary['response_format'] = 'json_object' if isinstance(data, dict) else 'json_other'
     if not isinstance(data, dict):
         return summary
-    # Observed Upload API errorCode is an HTTP code. Unknown numbers/strings
-    # are deliberately omitted; there is no published validation-code catalog.
-    code = data.get('errorCode')
-    if type(code) is int and code in (400, 401, 403, 404, 409, 413, 415, 422, 429, 500, 502, 503, 504):
-        summary['error_code'] = code
     fields, codes = set(), set()
+    hints = set()
 
     def field(value):
         if not isinstance(value, str):
             return
-        match = re.fullmatch(r'(?:metadata\.)?([A-Za-z]+)(?:\[[0-9]{1,6}\])?', value)
-        if match and match[1] in ERROR_FIELDS:
-            fields.add(match[1])
+        match = re.fullmatch(r'(?:metadata\.)?([A-Za-z]+)(?:\[[0-9]{1,6}\])?', value, re.IGNORECASE)
+        aliases = {name.lower(): name for name in ERROR_FIELDS}
+        if match and match[1].lower() in aliases:
+            fields.add(aliases[match[1].lower()])
 
     def entry(value):
         if not isinstance(value, dict):
@@ -263,7 +271,29 @@ def safe_api_error(raw):
         if isinstance(code, str) and code in ERROR_CODES:
             codes.add(code)
 
+    # Only known containers/keys are traversed. A small integer in a dedicated
+    # errorCode field is a protocol code, not an arbitrary numeric response value.
+    def known_error(value, depth=0):
+        if not isinstance(value, dict) or depth > 3:
+            return
+        for key in ('errorCode', 'ErrorCode'):
+            code = value.get(key)
+            if type(code) is int and 0 <= code <= 9999:
+                summary['error_code'] = code
+        for key in ('errorMessage', 'ErrorMessage', 'message', 'Message'):
+            message = value.get(key)
+            if isinstance(message, str):
+                # Email/domain/URL suffixes such as .invalid must not be
+                # mistaken for a server validation sentence.
+                message = re.sub(r'\S+@\S+|https?://\S+', '', message.lower())
+                for category, pattern in MESSAGE_HINTS.items():
+                    if pattern.search(message):
+                        hints.add(category)
+        for key in ('error', 'Error', 'details', 'Details'):
+            known_error(value.get(key), depth + 1)
+
     entry(data)
+    known_error(data)
     for key in ('errors', 'validationErrors', 'ModelState'):
         errors = data.get(key)
         if isinstance(errors, dict):
@@ -278,6 +308,9 @@ def safe_api_error(raw):
             for value in errors:
                 entry(value)
     summary.update(validation_fields=sorted(fields), validation_codes=sorted(codes))
+    if hints:
+        # These fixed labels are text-derived hints, not claimed official codes.
+        summary['message_hints'] = sorted(hints)
     return summary
 
 

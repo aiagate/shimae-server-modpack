@@ -366,6 +366,17 @@ class ReleaseTests(unittest.TestCase):
         self.assertEqual(error.exception.diagnostics['response_summary']['response_format'], 'read_failed')
         conn.request.assert_called_once()
 
+    def test_nested_error_codes_and_authentication_hints_never_retain_messages(self):
+        raw = json.dumps({'Error': {'ErrorCode': 1009,
+                                   'ErrorMessage': 'Invalid API token: dummy-token user@example.invalid'},
+                          'ModelState': {'Metadata.GameVersions[0]': ['private response']}})
+        result = r.safe_api_error(raw)
+        self.assertEqual(result['error_code'], 1009)
+        self.assertEqual(result['message_hints'], ['invalid_authentication'])
+        self.assertEqual(result['validation_fields'], ['gameVersions'])
+        for forbidden in ('dummy-token', 'user@example.invalid', 'private response', 'ErrorMessage'):
+            self.assertNotIn(forbidden, json.dumps(result))
+
     def test_dry_run_no_network(self):
         import tempfile
         b, c = self.fixture()
