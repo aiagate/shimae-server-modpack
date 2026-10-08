@@ -15,7 +15,8 @@ LIMIT = 2 * 1024 * 1024
 def audit(token, connection_factory=http.client.HTTPSConnection):
     token_check(token)
     report = {'method': 'GET', 'path': '/api/game/versions', 'http_status': None,
-              'status': 'unconfirmed', 'matched_versions': [], 'missing_names': list(WANTED)}
+              'status': 'unconfirmed', 'requested_names': list(WANTED),
+              'matched_versions': [], 'missing_names': None}
     conn = None
     try:
         conn = connection_factory(HOST, timeout=30)
