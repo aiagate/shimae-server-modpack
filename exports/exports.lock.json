@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "repository": "aiagate/shimae-server-modpack",
+  "version": null,
+  "minecraft_version": "1.21.1",
+  "mod_loader": "neoforge-21.1.243",
+  "profiles": {
+    "client": {
+      "asset_id": null,
+      "filename": null,
+      "sha256": null,
+      "size_bytes": null,
+      "manifest_name": null,
+      "reference_lock": "exports/client.refs.json",
+      "origin": {
+        "exporter": "CurseForge App",
+        "confirmed": false,
+        "confirmed_by": null,
+        "exported_at": null,
+        "source_profile": null
+      }
+    },
+    "server": {
+      "asset_id": null,
+      "filename": null,
+      "sha256": null,
+      "size_bytes": null,
+      "manifest_name": null,
+      "reference_lock": "exports/server.refs.json",
+      "origin": {
+        "exporter": "CurseForge App",
+        "confirmed": false,
+        "confirmed_by": null,
+        "exported_at": null,
+        "source_profile": null
+      }
+    }
+  }
+}

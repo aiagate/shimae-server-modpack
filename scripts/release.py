@@ -18,6 +18,7 @@ MAX_TOTAL = 256 * 1024 * 1024
 MAX_ENTRY = 32 * 1024 * 1024
 MAX_ENTRIES = 10000
 HOST = 'minecraft.curseforge.com'
+REVIEWED_COMMENTS_PATH = Path(__file__).with_name('reviewed_comments.json')
 DENIED = {'saves', 'world', 'worlds', 'logs', 'crash-reports', 'screenshots',
           'backups', 'options.txt', 'optionsof.txt', 'servers.dat', 'servers.dat_old',
           'server.properties', 'whitelist.json', 'ops.json', 'usercache.json',
@@ -28,7 +29,7 @@ SENSITIVE = re.compile(rb'(?i)(-----BEGIN [A-Z ]*PRIVATE KEY|'
                        rb'(?:localhost|[a-z0-9.-]+\.(?:local|lan|internal))\b)')
 PUBLIC_MODLIST_URL = re.compile(
     rb'https?://(?:(?:www|minecraft)\.)?curseforge\.com/'
-    rb'(?:minecraft/mc-mods/[a-z0-9-]+(?:/files/[0-9]+)?|projects/[a-z0-9-]+)/?'
+    rb'(?:minecraft/(?:mc-mods|shaders)/[a-z0-9-]+(?:/files/[0-9]+)?|projects/[a-z0-9-]+)/?'
     rb'(?=[\s"\x27<>]|$)', re.IGNORECASE)
 
 
@@ -80,6 +81,26 @@ def config_check(config):
     need(isinstance(config['reviewed_sha256'], str) and
          re.fullmatch('[0-9a-f]{64}', config['reviewed_sha256']),
          'reviewed_sha256 must identify the manually reviewed export')
+
+
+def checked_override(content, name):
+    """Do not skip comments generically; exempt only reviewed exact comment lines."""
+    try:
+        text = content.decode('utf-8')
+    except UnicodeDecodeError:
+        raise Invalid('binary overrides require a separately reviewed policy') from None
+    need(b'\x00' not in content, 'override contains a possible credential or connection destination')
+    # Credential detection applies even to an approved documentation comment.
+    credentials = re.compile(rb'(?i)(-----BEGIN [A-Z ]*PRIVATE KEY|'
+        rb'(?:password|passwd|token|api[_-]?key|secret)\s*["\x27]?\s*[:=]\s*["\x27]?[^\s"\x27,}]{4,})')
+    need(not credentials.search(content), 'override contains a possible credential')
+    policy = parse_json(REVIEWED_COMMENTS_PATH.read_bytes())
+    approved = policy.get(name, [])
+    for line in text.splitlines():
+        raw = line.strip().encode('utf-8')
+        reviewed = raw.startswith(b'#') and hashlib.sha256(raw).hexdigest() in approved
+        need(reviewed or not SENSITIVE.search(raw),
+             'override contains a possible credential or connection destination')
 
 
 def validate(blob, config):
@@ -136,13 +157,7 @@ def validate(blob, config):
                 need(b'\x00' not in text and not SENSITIVE.search(inspected),
                      'modlist contains a possible credential or connection destination')
             elif parts[0] == 'overrides':
-                # Conservative first template: only inspectable UTF-8 override files.
-                try:
-                    content.decode('utf-8')
-                except UnicodeDecodeError:
-                    raise Invalid('binary overrides require a separately reviewed policy') from None
-                need(b'\x00' not in content and not SENSITIVE.search(content),
-                     'override contains a possible credential or connection destination')
+                checked_override(content, name)
         need(isinstance(manifest, dict), 'root manifest.json missing or invalid')
         need(any(e.filename == 'overrides/' and e.is_dir() or
                  e.filename.startswith('overrides/') and len(e.filename) > len('overrides/')
@@ -151,8 +166,11 @@ def validate(blob, config):
              type(manifest.get('manifestVersion')) is int and manifest['manifestVersion'] == 1,
              'unsupported manifest format')
         need(manifest.get('overrides') == 'overrides', 'unsupported overrides directory')
-        for field in ('name', 'version', 'author'):
+        for field in ('name', 'version'):
             need(isinstance(manifest.get(field), str) and manifest[field].strip(), 'manifest identity missing')
+        # App exports may contain an empty author; attribution is confirmed
+        # separately. Do not rewrite the generated manifest to satisfy our checker.
+        need(isinstance(manifest.get('author'), str), 'manifest author must be a string')
         need(not manifest['version'].startswith('0.0.0-local.') and
              all('REPLACE' not in manifest[field] for field in ('name', 'version', 'author')),
              'local reconstruction draft or placeholder identity cannot be submitted')

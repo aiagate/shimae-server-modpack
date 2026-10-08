@@ -34,10 +34,13 @@ def get(host, path, accept, limit, connection_factory):
         conn.close()
 
 
-def fetch(config, connection_factory=http.client.HTTPSConnection):
+def fetch(config, connection_factory=http.client.HTTPSConnection, *, expected_name=None,
+          expected_size=None):
     config_check(config)
     asset_id = config['export_asset_id']
     need(positive(asset_id), 'export_asset_id must identify a reviewed public Release asset')
+    need(expected_name is None or isinstance(expected_name, str), 'invalid expected asset name')
+    need(expected_size is None or positive(expected_size), 'invalid expected asset size')
     path = f'/repos/{REPOSITORY}/releases/assets/{asset_id}'
     status, _, raw = get(API_HOST, path, 'application/vnd.github+json',
                          1024 * 1024, connection_factory)
@@ -47,6 +50,10 @@ def fetch(config, connection_factory=http.client.HTTPSConnection):
          asset['id'] == asset_id and asset.get('state') == 'uploaded' and
          positive(asset.get('size')) and asset['size'] <= MAX_ZIP,
          'Release asset ID/state/size mismatch')
+    need(expected_name is None or asset.get('name') == expected_name,
+         'Release asset name differs from reviewed lock')
+    need(expected_size is None or asset['size'] == expected_size,
+         'Release asset size differs from reviewed lock')
     status, location, blob = get(API_HOST, path, 'application/octet-stream',
                                 MAX_ZIP, connection_factory)
     if status == 302:
