@@ -1,4 +1,4 @@
-"""Check human-confirmed App exports; never generate or modify ZIP contents."""
+"""Check reviewed App-origin inputs/copies; never modify checked ZIP bytes."""
 import argparse
 import hashlib
 import io
@@ -37,7 +37,7 @@ def reference_map(files):
     return result
 
 
-def policy_check(policy, refs):
+def policy_check(policy, refs, *, check_shared_overrides=True):
     need(isinstance(policy, dict) and policy.get('schema_version') == 1, 'invalid policy')
     for key in ('forbidden_project_ids', 'retained_project_ids', 'client_only_project_ids'):
         values = policy.get(key)
@@ -63,13 +63,13 @@ def policy_check(policy, refs):
                  '..' not in name.split('/') and not UNWANTED.search(name) and
                  isinstance(digest, str) and HEX.fullmatch(digest), 'invalid override policy entry')
     common = set(hashes['client']) & set(hashes['server'])
-    need(all(hashes['client'][n] == hashes['server'][n] for n in common),
+    need(not check_shared_overrides or all(hashes['client'][n] == hashes['server'][n] for n in common),
          'shared override policy differs')
     need(isinstance(policy.get('commented_json_paths'), list) and
          all(isinstance(n, str) for n in policy['commented_json_paths']), 'invalid JSON comment policy')
 
 
-def load_inputs(lock_path, policy_path, config_path, *, require_assets=True):
+def load_inputs(lock_path, policy_path, config_path, *, require_assets=True, profile='client'):
     lock = parse_json(lock_path.read_bytes())
     policy = parse_json(policy_path.read_bytes())
     config = parse_json(config_path.read_bytes())
@@ -77,18 +77,21 @@ def load_inputs(lock_path, policy_path, config_path, *, require_assets=True):
          lock.get('repository') == fetch_export.REPOSITORY, 'invalid export lock repository/schema')
     need(isinstance(config, dict) and positive(config.get('project_id')), 'project_id is not configured')
     profiles = lock.get('profiles')
-    need(isinstance(profiles, dict) and set(profiles) == set(KINDS), 'two App profiles are required')
+    selected = KINDS if profile == 'both' else (profile,)
+    need(isinstance(profiles, dict) and set(profiles) <= set(KINDS) and
+         'client' in profiles and set(selected) <= set(profiles), 'selected App profile is required')
     refs = {}
     for kind in KINDS:
-        item = profiles[kind]
-        need(isinstance(item, dict) and item.get('reference_lock') == f'exports/{kind}.refs.json',
-             'use the fixed profile reference lock path')
+        if kind in selected:
+            item = profiles[kind]
+            need(isinstance(item, dict) and item.get('reference_lock') == f'exports/{kind}.refs.json',
+                 'use the fixed profile reference lock path')
         source = parse_json((lock_path.parent / f'{kind}.refs.json').read_bytes())
         need(isinstance(source, dict), 'invalid reference lock')
         refs[kind] = reference_map(source.get('files'))
-    policy_check(policy, refs)
+    policy_check(policy, refs, check_shared_overrides=profile == 'both')
     # Provenance is a human assertion, not something ZIP format or SHA can prove.
-    for kind in KINDS:
+    for kind in selected:
         origin = profiles[kind].get('origin')
         need(isinstance(origin, dict) and origin.get('exporter') == 'CurseForge App',
              'App export origin record is required')
@@ -100,7 +103,7 @@ def load_inputs(lock_path, policy_path, config_path, *, require_assets=True):
     need(isinstance(lock.get('version'), str) and lock['version'].strip() and
          'REPLACE' not in lock['version'], 'App export version is not configured')
     configs = {}
-    for kind in KINDS:
+    for kind in selected:
         item = profiles[kind]
         if require_assets and item.get('asset_id') is None:
             raise InputWait('reviewed public Release asset IDs are pending')
@@ -114,10 +117,11 @@ def load_inputs(lock_path, policy_path, config_path, *, require_assets=True):
              'REPLACE' not in item['manifest_name'], 'App manifest name is not configured')
         configs[kind] = dict(config, export_asset_id=item['asset_id'], reviewed_sha256=item['sha256'])
         config_check(configs[kind])
-    need((profiles['client']['asset_id'] is None or profiles['server']['asset_id'] is None or
-          profiles['client']['asset_id'] != profiles['server']['asset_id']) and
-         profiles['client']['filename'].casefold() != profiles['server']['filename'].casefold(),
-         'use distinct client/server assets and names')
+    if profile == 'both':
+        need((profiles['client']['asset_id'] is None or profiles['server']['asset_id'] is None or
+              profiles['client']['asset_id'] != profiles['server']['asset_id']) and
+             profiles['client']['filename'].casefold() != profiles['server']['filename'].casefold(),
+             'use distinct client/server assets and names')
     config_check(config)
     need(config['export_asset_id'] == profiles['client']['asset_id'] and
          config['reviewed_sha256'] == profiles['client']['sha256'], 'release config/client lock differ')
@@ -132,6 +136,12 @@ def check_blob(blob, kind, lock, policy, refs, config):
     digest = validate(blob, config)  # CRC, bounds, paths, manifest, exact SHA, privacy.
     with zipfile.ZipFile(io.BytesIO(blob)) as archive:
         manifest = parse_json(archive.read('manifest.json'))
+        origin = item.get('origin', {})
+        if origin.get('packaging') == 'cleaned-copy-with-unchanged-app-manifest':
+            need(hashlib.sha256(archive.read('manifest.json')).hexdigest() == origin.get('manifest_sha256'),
+                 'App manifest bytes changed during preparation')
+            need(hashlib.sha256(archive.read('modlist.html')).hexdigest() == origin.get('modlist_sha256'),
+                 'App modlist bytes changed during preparation')
         need(manifest['name'] == item['manifest_name'] and manifest['version'] == lock['version'],
              'App manifest identity differs from lock')
         need(reference_map(manifest['files']) == refs[kind], 'App MOD references differ from lock')
@@ -168,9 +178,9 @@ def main():
     mode.add_argument('--check-state', action='store_true')
     mode.add_argument('--fetch', action='store_true')
     mode.add_argument('--directory', type=Path)
-    mode.add_argument('--client', type=Path, help='local original client export; also needs --server')
-    parser.add_argument('--server', type=Path)
-    parser.add_argument('--profile', choices=KINDS)
+    mode.add_argument('--client', type=Path, help='local reviewed client ZIP; sufficient for publication checks')
+    parser.add_argument('--server', type=Path, help='optional server export; use --profile both')
+    parser.add_argument('--profile', choices=(*KINDS, 'both'), default='client')
     parser.add_argument('--output', type=Path)
     parser.add_argument('--commit')
     parser.add_argument('--github-output', type=Path)
@@ -178,11 +188,11 @@ def main():
     try:
         try:
             lock, policy, refs, configs = load_inputs(args.lock, args.policy, args.release_config,
-                                                     require_assets=not bool(args.client))
+                                                     require_assets=not bool(args.client), profile=args.profile)
         except InputWait:
             if not args.check_state:
                 raise
-            print('INPUT_WAIT: untouched App exports are pending; no assets checked or submitted.')
+            print('INPUT_WAIT: publication input/asset registration is pending; no assets checked or submitted.')
             if args.github_output:
                 with args.github_output.open('a') as handle:
                     handle.write('ready=false\n')
@@ -194,10 +204,11 @@ def main():
                     handle.write('ready=true\n')
             return 0
         need(not args.server or args.client, '--server requires --client')
-        need(not args.client or args.server, 'both local App exports are required')
-        need(not args.profile or args.directory, '--profile is for submission artifact recheck only')
+        need(not args.client or args.profile != 'both' or args.server, 'both mode requires --server')
+        need(not args.client or not args.server or args.profile == 'both', '--server requires --profile both')
+        need(not args.client or args.profile != 'server', 'local server checks use --client/--server --profile both')
         need(not args.fetch or args.output, '--fetch requires a new output directory')
-        kinds = (args.profile,) if args.profile else KINDS
+        kinds = KINDS if args.profile == 'both' else (args.profile,)
         blobs, paths = {}, {}
         for kind in kinds:
             item = lock['profiles'][kind]
@@ -221,8 +232,9 @@ def main():
                 need(read_blob(path) == blob, 'saved App export bytes changed')
                 paths[kind] = path.resolve()
             receipt = {'commit': args.commit, 'lock_sha256': hashlib.sha256(args.lock.read_bytes()).hexdigest(),
-                       'project_id': configs['client']['project_id'], 'version': lock['version'],
+                       'project_id': configs[kinds[0]]['project_id'], 'version': lock['version'],
                        'status': 'validated', 'app_origin': 'human-confirmed; not machine-proven',
+                       'packaging': lock['profiles'][kinds[0]].get('origin', {}).get('packaging', 'unmodified-source'),
                        'exports': {k: {field: lock['profiles'][k][field]
                                       for field in ('asset_id', 'filename', 'size_bytes', 'sha256')}
                                    for k in kinds}}
@@ -234,10 +246,10 @@ def main():
                 for kind, path in paths.items():
                     need(not any(ord(c) < 32 or ord(c) == 127 for c in str(path)), 'unsafe output path')
                     handle.write(f'{kind}_zip={path}\n')
-        print('Verified unmodified App export bytes; no submission performed.')
+        print('Verified reviewed App-origin ZIP bytes; no submission performed.')
         return 0
     except InputWait:
-        print('INPUT_WAIT: provide two untouched App exports and confirm their origin before fetching or submitting.',
+        print('INPUT_WAIT: complete the publication input/asset registration before fetching or submitting.',
               file=sys.stderr)
         return 1
     except (Invalid, OSError, ValueError, KeyError, TypeError, zipfile.BadZipFile, RuntimeError,

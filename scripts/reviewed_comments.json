@@ -55,5 +55,9 @@
   ],
   "overrides/config/tabtps/themes/default.conf": [
     "4cbad762ddc47baf099bf659734b45d4ae5086c56f5adb2712afa8a19a040eb4"
+  ],
+  "overrides/config/apotheosis/enchantments.cfg": [
+    "3b43752804fd971f7dc402d423e3c485cc8428920d651b374b3996dfe6749500",
+    "e5334fdccff58b248bc3be1e54949f5a7b0964319b49808955b1204be1883ada"
   ]
 }

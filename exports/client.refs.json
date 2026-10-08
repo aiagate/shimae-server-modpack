@@ -1,5 +1,5 @@
 {
-  "basis": "Reviewed desired configuration from local import candidates; not evidence of App export provenance. Re-review hashes against new untouched App exports.",
+  "basis": "User-supplied 0.0.1 source manifest; original ZIP SHA256 042de1c25ce9995f04eac015ba9e6db257749a677c5ad02f50293b5decac7cf8. App execution not independently observed.",
   "files": [
     {
       "projectID": 60089,

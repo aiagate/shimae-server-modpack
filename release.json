@@ -9,6 +9,6 @@
     "Client"
   ],
   "release_type": "release",
-  "display_name": "Shimae Server Modpack - REPLACE_WITH_RELEASE_VERSION",
-  "reviewed_sha256": "REPLACE_WITH_REVIEWED_EXPORT_SHA256"
+  "display_name": "Shimae Server Modpack - 0.0.1",
+  "reviewed_sha256": "b27742177d000e581a6b9ea0bd1540929ac291018ab70ef11f9bd1193dacd81c"
 }

@@ -61,12 +61,14 @@ class AppExportTests(unittest.TestCase):
     def load(self):
         self.save()
         return v.load_inputs(self.exports / 'exports.lock.json', self.exports / 'policy.json',
-                             self.root / 'release.json')
+                             self.root / 'release.json', profile='both')
 
     def cli(self, *options):
         args = ['verify_app_exports.py', '--lock', str(self.exports / 'exports.lock.json'),
                 '--policy', str(self.exports / 'policy.json'), '--release-config',
                 str(self.root / 'release.json'), *map(str, options)]
+        if '--profile' not in options:
+            args += ['--profile', 'both']
         with patch.object(sys, 'argv', args):
             return v.main()
 
@@ -214,6 +216,78 @@ class AppExportTests(unittest.TestCase):
             self.assertEqual(self.cli('--client', paths['client'], '--server', paths['server']), 0)
             self.assertEqual(self.cli('--fetch', '--output', self.root / 'out', '--commit', 'a' * 40), 1)
             fetch.assert_not_called()
+
+    def test_client_only_fetch_succeeds_without_server_profile_record(self):
+        self.lock['profiles'].pop('server')
+        self.save()
+        out = self.root / 'client-only'
+        with patch.object(v.fetch_export, 'fetch', return_value=self.blobs['client']) as fetch:
+            self.assertEqual(self.cli('--profile', 'client', '--fetch', '--output', out,
+                                      '--commit', 'a' * 40), 0)
+        fetch.assert_called_once()
+        self.assertEqual(fetch.call_args.args[0]['export_asset_id'], 1010)
+        self.assertEqual((out / self.lock['profiles']['client']['filename']).read_bytes(), self.blobs['client'])
+        self.assertEqual(set(json.loads((out / 'receipt.json').read_text())['exports']), {'client'})
+        self.assertFalse((out / 'synthetic-test-server.zip').exists())
+
+    def test_unconfigured_server_never_blocks_client_state_or_fetch(self):
+        self.lock['profiles']['server'].update(asset_id=None, filename=None, sha256=None,
+                                              size_bytes=None, manifest_name=None)
+        self.lock['profiles']['server']['origin']['confirmed'] = False
+        self.save()
+        outputs = self.root / 'outputs'
+        self.assertEqual(self.cli('--profile', 'client', '--check-state', '--github-output', outputs), 0)
+        self.assertEqual(outputs.read_text(), 'ready=true\n')
+        with patch.object(v.fetch_export, 'fetch', return_value=self.blobs['client']) as fetch:
+            self.assertEqual(self.cli('--profile', 'client', '--fetch', '--output', self.root / 'out',
+                                      '--commit', 'a' * 40), 0)
+            fetch.assert_called_once()
+
+    def test_default_local_client_validation_needs_no_server_zip_or_asset(self):
+        self.lock['profiles'].pop('server')
+        self.lock['profiles']['client']['asset_id'] = None
+        self.config['export_asset_id'] = None
+        self.save()
+        path = self.root / 'client.zip';path.write_bytes(self.blobs['client'])
+        args = ['verify_app_exports.py', '--lock', str(self.exports / 'exports.lock.json'),
+                '--policy', str(self.exports / 'policy.json'), '--release-config', str(self.root / 'release.json'),
+                '--client', str(path)]
+        with patch.object(sys, 'argv', args), patch.object(v.fetch_export, 'fetch') as fetch:
+            self.assertEqual(v.main(), 0)
+            fetch.assert_not_called()
+
+    def test_invalid_client_still_fails_without_server(self):
+        self.lock['profiles'].pop('server')
+        self.save()
+        with patch.object(v.fetch_export, 'fetch', return_value=b'changed-client'):
+            self.assertEqual(self.cli('--profile', 'client', '--fetch', '--output', self.root / 'bad',
+                                      '--commit', 'a' * 40), 1)
+        self.assertFalse((self.root / 'bad').exists())
+
+    def test_current_client_setting_change_is_not_reverted_to_old_server_policy(self):
+        content = 'enabled = false'
+        self.mutate('client', {'overrides/config/example.toml': content})
+        self.policy['override_sha256']['client']['overrides/config/example.toml'] = hashlib.sha256(content.encode()).hexdigest()
+        self.save()
+        with patch.object(v.fetch_export, 'fetch', return_value=self.blobs['client']) as fetch:
+            self.assertEqual(self.cli('--profile', 'client', '--fetch', '--output', self.root / 'changed',
+                                      '--commit', 'a' * 40), 0)
+            fetch.assert_called_once()
+
+    def test_prepared_copy_rejects_app_manifest_changes_even_with_new_zip_sha(self):
+        with zipfile.ZipFile(io.BytesIO(self.blobs['client'])) as z:
+            original_manifest = z.read('manifest.json')
+        self.lock['profiles']['client']['origin'].update(
+            packaging='cleaned-copy-with-unchanged-app-manifest',
+            manifest_sha256=hashlib.sha256(original_manifest).hexdigest(),
+            modlist_sha256=hashlib.sha256(b'<html>synthetic</html>').hexdigest())
+        self.mutate('client', {'manifest.json': original_manifest + b'\n',
+                               'modlist.html': '<html>synthetic</html>'})
+        self.save()
+        with patch.object(v.fetch_export, 'fetch', return_value=self.blobs['client']):
+            self.assertEqual(self.cli('--profile', 'client', '--fetch', '--output', self.root / 'bad-manifest',
+                                      '--commit', 'a' * 40), 1)
+        self.assertFalse((self.root / 'bad-manifest').exists())
 
     def test_bad_toml_even_with_reviewed_hash_is_rejected(self):
         content = 'enabled = [invalid'

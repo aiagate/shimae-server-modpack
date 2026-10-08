@@ -1,4 +1,4 @@
-"""Validate an untouched CurseForge App export; optionally submit the same bytes."""
+"""Validate a reviewed App-origin ZIP; optionally submit the same bytes."""
 import argparse
 import hashlib
 import html

@@ -103,6 +103,17 @@ class ReleaseTests(unittest.TestCase):
             with self.subTest(author=author), self.assertRaises(r.Invalid):
                 r.validate(b, c)
 
+    def test_apotheosis_documentation_exception_is_exact_and_never_allows_credentials(self):
+        name = 'overrides/config/apotheosis/enchantments.cfg'
+        comment = '# File Specification: https://gist.github.com/Shadows-of-Fire/88ac714a758636c57a52e32ace5474c1'
+        b, c = self.fixture({name: comment + '\n'})
+        self.assertEqual(r.validate(b, c), c['reviewed_sha256'])
+        for path, line in [(name, comment + ' changed'), ('overrides/config/other.cfg', comment),
+                           (name, comment + '\n# api_key="synthetic-not-real"')]:
+            b, c = self.fixture({path: line})
+            with self.subTest(path=path), self.assertRaises(r.Invalid):
+                r.validate(b, c)
+
     def test_paths_and_private_files(self):
         for name in ('../escape', '/absolute', 'overrides/../escape',
                      'overrides\\escape', 'C:/escape', 'wrapper/manifest.json',

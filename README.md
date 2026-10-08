@@ -1,101 +1,70 @@
 # Shimae Server Modpack
 
-`aiagate/shimae-server-modpack` は **Shimae Server Modpack** のリリース管理用リポジトリです。表示名は `Shimae Server Modpack`、slug・配布ファイル名の基本は `shimae-server-modpack` に揃えます。
+Minecraft `1.21.1` / NeoForge `21.1.243`のModPackを、CurseForge project **1733082**で公開するためのリポジトリです。正式投稿の入力は、本人がCurseForge Appから出力した**クライアントExport ZIP 1つ**です。Appが出力したmanifestは編集しません。サーバープロフィールのExportは公開の前提にしません。
 
-CurseForge project IDは`1733082`、対象はMinecraft `1.21.1` / NeoForge `21.1.243`です。**正式な未改変App Exportは未受領で、取得・提出は入力待ちです。** 既存のローカル編集した取込ZIPをApp出力として登録しません。ActionsはAppを操作せず、manifest生成・ZIP再構築・設定の自動修正も行いません。
+`Shimae Server Modpack-0.0.1.zip`を受領し、199参照と全File IDの一致、MC/loader、CRCと構造を確認しました。原本は保全し、不要状態11件の除外とライセンス文書2件の付属だけを行った提出候補をローカル検査済みです。manifest・modlist・残した設定本文は原本とバイト一致します。公開asset IDは未登録で、まだ公開・提出していません。Appでの出力操作を独立に観察したという証明は付けません。
 
-## 初期状態とCI
+## 本人に必要な入力作成
 
-- push/PRのValidateはテスト、Python構文、GitへのZIP混入、App Export入力状態を確認します。入力待ちは明示してZIP取得をスキップし、正式入力が揃ったときは固定assetの2ZIPを検査します。PRではartifactを保存しません。MODのダウンロード・実行は行いません。
-- `release.json`にproject ID `1733082`とゲーム版を設定しました。正式版、client asset ID、SHA256は未設定です。`exports/exports.lock.json`の両App出力も未確認のため、手動preflightはネットワーク接続前に`INPUT_WAIT`で停止します。汎用の`release.example.json`は未設定の例として残します。
-- Manual CurseForge submissionはmainの `workflow_dispatch` だけです。既定は取得・検査のみで、正式App Export未受領の状態ではpreflightが失敗し、提出jobへ進みません。
-- `curseforge` environment、提出Token、有効化Variableは作成・設定していません。テストは合成fixtureで、実MOD構成やApp exportの検証済み主張ではありません。
+1. CurseForge Appで配布するクライアントプロフィールを開きます。TFC除去済み候補を使う場合も、AppへImportしてプロフィールを確認します。
+2. Minecraft `1.21.1` / NeoForge `21.1.243`、TFC・Offset Smoker・Bonsai除外、PatchouliとApotheosis系列の保持を確認します。参照基準は199件です。MOD取得・起動・必要なサーバーへの参加を確認します。
+3. Export前に不要なベンチマーク、機器fingerprint、Chunky作業状態、Bonsai client/common設定、個人履歴・バックアップ等を除きます。有効なChunky設定は保持します。必要なライセンス文書はプロフィール側へ配置します。
+4. AppのShare Profile → Export as .zipで、mods参照と必要な設定等を選びます。不要状態がなければそのZIPを提出します。版、プロフィール名、Export日時も記録します。今回の0.0.1は受領済みで、追加のExportは現在のローカル検査の前提ではありません。
+
+Export後のmanifestをcheckerのために編集しません。構成や有効な設定の変更が必要な場合は、プロフィール側を直して再Exportします。不要状態の除外だけの場合は、原本を保持し、manifestと残した設定のバイト一致を確認した整理コピーを別に作ります。server用Exportを別途作る必要はありません。
+
+## 受領後の検査・登録
+
+作業側がclient ZIPの名前・版・サイズ・SHA256・manifest名・出所記録を`exports/exports.lock.json`のclientへ登録します。`origin.confirmed=true`は人による確認記録であり、機械がApp出所を証明した意味ではありません。`exports/client.refs.json`と`policy.json`の参照・設定ハッシュを比較し、再Exportによる差異があれば理由をレビューします。提出候補のmanifestと残した設定本文は書き換えません。原本と整理コピーのSHAを別に記録します。
+
+`release.json`はproject ID `1733082`とゲーム版を設定済みです。正式client版・表示名・SHAとCHANGELOGを確定します。公開前のローカル検査ではclient asset IDをnullのまま使えます。
 
 ```bash
 python3 -m unittest discover -s tests -v
 python3 -m compileall -q scripts tests
+python3 scripts/verify_app_exports.py --client /path/client-app-export.zip
+python3 scripts/release.py --zip /path/client-app-export.zip
 ```
 
-## 正式な構成を用意する
+`scripts/prepare_export.py`と`exports/preparation.json`で今回の整理を再現できます。原本SHAを固定し、削除はレビュー済み不要状態に限定して、別のZIPを作ります。出所記録はApp Export由来の整理コピーであり、未改変App Export ZIPそのものという表示にはしません。
 
-1. Minecraft/loaderの版、収録MODと配布条件、クライアント用途を決め、別の配布専用CurseForge Appプロフィールを作ります。名前をShimae Server Modpackとし、正式な版と本人指定のauthorをApp上で設定します。名前からサーバー実行パックと誤解されないよう目的を記載します。
-2. Appで起動と必要なサーバー参加を確認し、配布に必要なファイルだけexportします。生成manifestは手編集しません。修正が必要ならAppプロフィールを直して再exportします。
-3. 外部へ載せる前に全内容を人が確認します。ワールド、ログ、options.txt、servers.dat、私的config、サーバー接続先、個人の地図、認証情報を除きます。未レビューのZIPは手元の非共有フォルダだけに置きます。jar再配布の権利も確認します。
-4. 本パックの専用project ID `1733082`を使います。既存`release.json`へApp Export由来の正式版・表示名・client asset ID・SHA256を入力します。`game_version_names`はMinecraft版、対応Loader名、Clientです。
-5. 全内容レビュー済みZIPのSHA256を `reviewed_sha256` に記入し、CHANGELOGを書きます。ローカル検査の `export_asset_id` はnullのまま使えます。
+公開用に検査した提出候補を本リポジトリの公開Release assetへ保存した後、実asset IDをclient lockと`release.json`に同一値で固定します。ZIPはGitへ追跡せず、最新assetを名前や可変URLで推測しません。
 
-```bash
-sha256sum /private/path/shimae-server-modpack.zip
-python3 scripts/release.py --zip /private/path/shimae-server-modpack.zip
-```
+## Actionsから正式公開まで
 
-ローカル検査は既定で通信・提出をしません。停止理由をレビューし、ハッシュだけを書き換えて検査を省略しないでください。Windowsでは `Get-FileHash -Algorithm SHA256 <ZIPのパス>` でも確認できます。
+`validate.yml`はpush/PRでfixtureテスト、Python構文、GitのZIP混入、client入力状態を検査します。入力待ちは明示して取得をスキップします。client入力が揃えば固定assetのZIPを検査します。serverのasset・SHA・出所が未設定でもclientの検査は進められます。PRではartifactを保存しません。
 
-## レビュー済みZIPの保管と取得
+`submit.yml`はmainからの手動起動のみです。`submit=false`でclient ZIPを取得・検査し、投稿メタデータとCHANGELOGも確認します。検査済みclient ZIPを単独artifact、SHA256SUMSとreceiptを別artifactとして14日保存します。server artifactは必須にしません。
 
-ローカル検査と人の全内容レビュー後、このリポジトリの公開Releaseへ正式exportをassetとして保存し、取得したasset IDを `release.json` の `export_asset_id` に記入します。名前だけで自動選択せず、IDとレビュー済みSHA256で固定します。設定とCHANGELOGをレビューしてmainへ反映した後、ActionsのManual CurseForge submissionを `submit=false` で実行して検査します。
+`submit=true`では既存`curseforge` Environmentの承認後、同じrunのclient artifact IDだけを固定して取得します。`skip-decompress:true`で元ZIPを展開せず、同じcommitの設定とSHAを再検査し、同じバイトを一度だけUpload APIへPOSTします。API受付は審査・公開完了とは区別します。受付不明時は作者画面で確認し、自動再送しません。
 
-**このリポジトリはpublicです。Release assetはCurseForge審査前でも誰でも取得できます。** レビュー前のZIPをGit、Release、Actions artifactに載せないでください。Gitではコード・設定・変更履歴だけを管理し、ZIPは追跡しません。過去のGit履歴に誤って含めた情報は、現在のファイルを削除しても消えません。
+既存Secret `CURSEFORGE_API_TOKEN`、Variable `CURSEFORGE_SUBMISSION_ENABLED=true`、main制限と利用可能な承認ゲートを利用します。このローカル修正でSecretや権限を設定しません。Token値はチャット・Git・コマンド引数・ログへ載せません。
 
-取得処理は認証なしGET、固定repo `aiagate/shimae-server-modpack` のasset API、許可したGitHub HTTPS配信先、圧縮90 MiBの上限に制限します。SHA256・ZIP構造・内容検査が通るまでZIPを保存しません。preflightは検査済み2ZIPをそれぞれ未改変の単独artifactへ、SHA256SUMSとreceiptを別artifactへ保存します。保持14日です。提出jobへはclientの正確なartifact IDだけを渡します。download-artifact v8の`skip-decompress:true`で元のZIPを展開せず取得し、同じcommitの設定とSHAを再検査します。
+公開までには、修正のPR反映・CI・レビューとマージ、正本asset登録、手動検査とclient提出、CurseForge審査と作者画面での手動公開が必要です。完了はCurseForgeで利用者がインストールできる公開状態を確認して判断します。Git入力・Release・artifactが公開される運用は本人確認済みです。
 
-## 提出を有効化するとき
+## 検査の範囲と生成案
 
-設定・正式export・検査が整ってから、ユーザーがGitHubのEnvironment `curseforge` に必要な承認者とmain制限を設定し、Secret `CURSEFORGE_API_TOKEN` とVariable `CURSEFORGE_SUBMISSION_ENABLED=true` を設定します。TokenはCurseForgeの投稿用API tokenです。チャット、Git、コマンド引数、ログへ値を載せません。現時点では設定しません。
+ZIPのCRC、SHA256、manifest・版・loader・参照ID、危険なパス、重複、symlink、暗号化、サイズ、実行属性、設定の秘密値・私的接続先・不要状態、JSON/TOMLを検査します。参照件数だけで合格にせず、199参照の完全lockと照合します。MODの全依存グラフ、mixins、掲載承認状態、実機動作や配布権利を完全自動証明したとは扱いません。
 
-承認ゲートの利用可否を確認し、正式提出はActionsで `submit=true` を選びます。提出jobは再度SHA256と内容を検査し、同じバイトを `shimae-server-modpack.zip` というmultipartファイル名で一度だけPOSTします。ZIPの中身は改変しません。API受付とCurseForge審査・公開は別です。
+`exports/server.refs.json`とserver側のpolicyは構成比較用の既存メタデータです。これはserver ZIPの受領を要求するものではありません。server用の取込プロフィールはJAR入りの実行Server PackとしてAdditional Fileへ投稿しません。
 
-receiptにはcommit、exportの版、ZIP SHA256、asset ID、project ID、受付file ID、状態（validated/submitted/submission_unconfirmed）を残します。タイムアウト・中断などでは受付済みの可能性があり、作者画面で確認するまで再実行しません。自動再送はなく、concurrencyは同時実行の直列化であり、手動再実行の重複を永続的に防ぐ機能ではありません。
+[公式審査規約](https://support.curseforge.com/support/solutions/articles/9000197279-project-and-modpack-moderation-policies)はAppでのModPack作成とApp生成manifestの編集禁止を明記しています。独自の互換ZIP生成はApp起源の証拠になりません。独自生成のローカル修正は別に保持し、今回の正式投稿フローへ混ぜません。
 
-## 検査の範囲
+## ライセンスと共通処理
 
-ZIPを展開せず、SHA256、manifest、版、loader、MOD参照、危険なパス、重複、symlink、暗号化、CRC、サイズを検査します。上限は圧縮90 MiB、展開256 MiB、1ファイル32 MiB、1万エントリ、圧縮率200倍というローカル方針です。正式App exportにはroot manifestとoverridesが必要です。草案版 `0.0.0-local.*` とREPLACEの仮identityは提出拒否します。
+本人指定の作者はShimaeです。自作の設定寄与・スクリプト・説明文はMITとし、LICENSEとLICENSE-SCOPE.txtで範囲を定めます。第三者Mod・Shader・ライブラリ・生成された既定設定やコメントの権利は各作者のままです。
 
-overridesは検査できるUTF-8テキストのみを許可し、jar・入れ子ZIP・バイナリ・私的ファイル・接続先らしい記述を拒否します。manifestとmodlist.htmlも検査します。App由来、任意の秘密値、配布許可、MODの互換性や動作は完全自動判定できないため、人の確認が必要です。
+空のApp authorと正規のshaderリンクへの既存対応を維持します。`reviewed_comments.json`のパスと行SHAが完全一致する説明コメントだけ接続先検査を除外し、認証値検査はその行にも適用します。
 
-## 共通処理の出所と公式資料
+共通処理は`aiagate/minecraft-modpack-release`のcommit `e7e0fbd0e7dc405d21e8bb44fe4282a3651ac15a`を土台にしています。他パックのMOD構成・Secret・project IDは引き継ぎません。
 
-取得・検査・提出処理は `aiagate/minecraft-modpack-release` の共通実装（commit `e7e0fbd0e7dc405d21e8bb44fe4282a3651ac15a`）を土台に、固定取得repoと名前をこのパック用に変更しました。元のプロフィール・MOD構成・生成草案・公開ZIPはコピーしていません。ここでのテスト成功はShimaeのMOD構成の動作確認を意味しません。
+- [Upload API](https://support.curseforge.com/support/solutions/articles/9000197321-curseforge-api)
+- [正式Exportの手順](https://support.curseforge.com/support/solutions/articles/9000198500-exporting-a-modpack-for-curseforge-project-submission)
+- [App Export / Import](https://support.curseforge.com/support/solutions/articles/9000198501-exporting-and-importing-modpacks)
+- [Server Packガイド](https://blog.curseforge.com/server-packs-tutorial/)
 
-- [CurseForge Upload API](https://support.curseforge.com/support/solutions/articles/9000197321-curseforge-api)
-- [正式提出ZIPの形式](https://support.curseforge.com/support/solutions/articles/9000198500-exporting-a-modpack-for-curseforge-project-submission)
-- [審査規約](https://support.curseforge.com/support/solutions/articles/9000197279-project-and-modpack-moderation-policies)
-- [Appのexport/import](https://support.curseforge.com/support/solutions/articles/9000198501-exporting-and-importing-modpacks)
+## 0.0.1の登録状況
 
-初期公開ではMODの推測、ZIP配布、CurseForge実提出、Secret・権限設定を行いません。
+原本は732,350 bytes、SHA256 `042de1c25ce9995f04eac015ba9e6db257749a677c5ad02f50293b5decac7cf8`です。提出候補は430,127 bytes、SHA256 `b27742177d000e581a6b9ea0bd1540929ac291018ab70ef11f9bd1193dacd81c`です。公開する版はmanifestどおり`0.0.1`で、独自に`0.1-no-tfc`へ戻しません。
 
-## 2026-10-08のローカル準備
-
-作者は本人指定のShimaeです。自作の設定寄与・リリーススクリプト・説明文はMITとし、LICENSEとLICENSE-SCOPE.txtで適用範囲を定めます。第三者Mod・Shader・ライブラリ・生成された既定設定やコメントの権利は各作者のままです。
-
-公開区分は本人選択のReleaseですが、修正版ZIPでの実機起動・必要なサーバー接続の結果を確認するまで公開しません。以前の原App Exportは201参照でした。現行の構成比較基準はTFC除外後のclient199/server189参照であり、ローカル編集したZIPから採った基準です。新しい未改変App Exportの出所を証明するものではありません。公開設定やRelease assetを今回用意したという意味ではありません。
-
-検査は正規CurseForgeの/minecraft/shaders/リンクを認めます。未知のサイト、URL userinfo/query、接続先や認証値を一律に許可しません。設定の説明コメントはscripts/reviewed_comments.jsonにレビュー済みのファイルパスと行SHA256を記録し、完全一致する#コメント行だけを接続先検査の例外にします。認証値検査は例外行にも適用します。コメントの変更・追加や別ファイルへの移動は再レビューが必要です。
-
-App生成manifestのauthorが空でも、文字列であることを検査し、本人指定のproject attributionとは別に扱います。名前と版、仮identity/草案版の拒否は維持し、checkerを通すためのmanifest手編集はしません。
-
-以前のローカル準備では不要な個人履歴・バックアップ等を整理した候補を作成しました。正式配布入力ではAppプロフィールとExport対象を事前に整理し、必要なライセンス文書もExport前に配置します。Export後のZIPを編集してcheckerを通す運用はしません。
-
-正式入力は本人がAppからExportした未改変ZIPだけに限定します。不合格時はAppプロフィール側を修正して再Exportします。CurseForgeの審査適合・全参照fileIDの掲載承認/互換性・実機動作は、このローカル検査の成功だけでは保証できません。
-
-
-## 2つのApp Exportを登録する
-
-1. Appでclientとserver用プロフィールを確認します。client199/server189参照が基準で、TFC、Offset Smoker、Bonsaiは除外、PatchouliとApotheosis系列は保持します。serverはclientの部分集合で、共通File IDは同一です。差分10件は`exports/policy.json`に固定しています。
-2. ベンチマーク、Sodium fingerprint、Chunkyの作業状態、未使用Bonsaiのclient/common設定、個人履歴等をExport前に除きます。有効なChunky設定`config/chunky/config.json`は保持します。ZIP内の許可テキストとSHAはpolicyの基準と照合し、Appの再Exportで差異が生じた場合は理由をレビューしてpolicyを更新します。
-3. 2ZIPの版、manifest名、名前、サイズ、SHAとExport日・プロフィール名・確認者を`exports/exports.lock.json`へ登録します。`origin.confirmed=true`は人の確認記録です。機械はApp出所や配布権利を証明できません。
-4. `exports/client.refs.json`と`server.refs.json`は構成比較の正本です。現在の基準との差分を確認し、App Exportの参照と完全一致させます。許可overrideのハッシュも比較します。自動的な参照書き換えはしません。
-5. 本リポジトリのReleaseへ2ZIPを保存し、asset IDをlockに固定します。`release.json`のclient asset ID/SHAも同一にします。版・表示名・CHANGELOGを確定してmainへ反映し、`submit=false`で取得・検査を確認します。
-
-ローカル検査はネットワーク・投稿なしで実施できます。公開前のローカル検査では両asset IDと`release.json`のasset IDをnullのまま使えます。公開後は実際のasset IDを固定します。予定値や仮IDでは取得しません。
-
-```bash
-python3 scripts/verify_app_exports.py --check-state
-python3 scripts/verify_app_exports.py --client /path/client-app-export.zip --server /path/server-app-export.zip
-```
-
-入力待ちのPRはfixtureテストと構成基準の検査だけを通過します。これは実ZIPの検証完了ではありません。手動preflightは入力待ちのまま成功扱いにしません。
-
-正式投稿は`submit=true`でclientだけを扱います。server用App ExportはMOD参照型の取込補助ZIPとしてGitHubで保存し、実行用Server PackとしてCurseForgeへ投稿しません。[公式Server Packガイド](https://blog.curseforge.com/server-packs-tutorial/)は`mods`・`config`を含む実行用ZIPを親ファイルのAdditional Fileとして登録する工程を示しています。
-
-今回の連携に必要な本人の設定は、投稿権限のあるCurseForge upload tokenをGitHub `curseforge` EnvironmentのSecret `CURSEFORGE_API_TOKEN`へ直接登録すること、同EnvironmentのVariable `CURSEFORGE_SUBMISSION_ENABLED=true`、main制限と利用可能な承認ゲートです。値はチャット・Git・コマンド引数・ログへ書きません。API受付後は作者画面で審査・手動公開を確認します。
+新しいApp出力の設定差分14件を保持し、追加された有効な設定3件も採用しました。未出力のシェーダー設定ファイルは勝手に追加しません。Apotheosis設定にあるPlacebo CFG仕様とEvalEx利用例への公開コメント2種類を、パスと行SHAに限定してレビュー済み例外へ登録しました。秘密値検査は常に適用します。実際の起動・掲載承認状態・CurseForge審査通過をこのローカル検査だけで証明したとは扱いません。
