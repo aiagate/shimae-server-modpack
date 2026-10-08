@@ -8,6 +8,7 @@ import json
 import os
 from pathlib import Path
 import re
+import ssl
 import stat
 import sys
 import uuid
@@ -35,6 +36,17 @@ PUBLIC_MODLIST_URL = re.compile(
 
 class Invalid(ValueError):
     pass
+
+
+class SubmissionError(Invalid):
+    """Fixed diagnostic fields only; never retain server text or exceptions."""
+
+    def __init__(self, category, phase, http_status=None):
+        self.diagnostics = {'category': category, 'phase': phase,
+                            'http_status': http_status, 'response_body_recorded': False}
+        status = f', HTTP {http_status}' if http_status is not None else ''
+        super().__init__(f'Submission not confirmed ({category}, {phase}{status}). '
+                         'Check author dashboard before any manual retry.')
 
 
 def need(ok, message):
@@ -215,19 +227,51 @@ def submit(blob, config, meta, token, connection_factory=http.client.HTTPSConnec
     body += (f'\r\n--{boundary}\r\nContent-Disposition: form-data; name="file"; '
              'filename="shimae-server-modpack.zip"\r\nContent-Type: application/zip\r\n\r\n').encode()
     body += blob + f'\r\n--{boundary}--\r\n'.encode()
-    conn = connection_factory(HOST, timeout=120)
+    conn = None
+    phase = 'connection_setup'
+    status = None
     try:
+        conn = connection_factory(HOST, timeout=120)
+        phase = 'request'
         conn.request('POST', f"/api/projects/{config['project_id']}/upload-file", body,
                      {'X-Api-Token': token, 'Content-Type': f'multipart/form-data; boundary={boundary}'})
+        phase = 'response_headers'
         response = conn.getresponse()
-        need(200 <= response.status < 300, 'API did not confirm acceptance; check author dashboard before retrying')
-        result = parse_json(response.read(65537))
-        need(isinstance(result, dict) and positive(result.get('id')), 'API response missing file ID; check dashboard before retrying')
+        if type(response.status) is not int or not 100 <= response.status <= 599:
+            raise SubmissionError('invalid_http_status', phase)
+        status = response.status
+        if not 200 <= status < 300:
+            # Do not read Location, reason, headers or the error body: these may
+            # contain reflected authentication values or personal information.
+            raise SubmissionError('http_non_success', phase, status)
+        phase = 'response_body'
+        raw = response.read(65537)
+        if len(raw) > 65536:
+            raise SubmissionError('response_too_large', phase, status)
+        try:
+            result = parse_json(raw)
+        except (ValueError, UnicodeError):
+            raise SubmissionError('invalid_json_response', phase, status) from None
+        if not isinstance(result, dict) or not positive(result.get('id')):
+            raise SubmissionError('missing_valid_file_id', phase, status)
         return result['id']
-    except (OSError, http.client.HTTPException, ValueError):
-        raise Invalid('Submission not confirmed. Check author dashboard before any manual retry.') from None
+    except SubmissionError:
+        raise
+    except ssl.SSLError:
+        raise SubmissionError('tls_error', phase, status) from None
+    except TimeoutError:
+        raise SubmissionError('timeout', phase, status) from None
+    except OSError:
+        raise SubmissionError('connection_error', phase, status) from None
+    except http.client.HTTPException:
+        raise SubmissionError('http_protocol_error', phase, status) from None
     finally:
-        conn.close()
+        if conn is not None:
+            try:
+                conn.close()
+            except (OSError, http.client.HTTPException):
+                # A close error must not hide the response/transport diagnosis.
+                pass
 
 
 def main():
@@ -239,6 +283,7 @@ def main():
     parser.add_argument('--receipt', type=Path, help='write a public JSON submission receipt')
     parser.add_argument('--commit', help='source commit SHA to record with --receipt')
     args = parser.parse_args()
+    receipt = None
     try:
         path = Path(args.zip)
         need(path.suffix == '.zip' and not path.is_symlink(), 'use a regular export ZIP')
@@ -247,7 +292,6 @@ def main():
         config = parse_json(Path(args.config).read_text(encoding='utf-8'))
         digest = validate(blob, config)
         meta = metadata(config, Path(args.changelog).read_text(encoding='utf-8'))
-        receipt = None
         if args.receipt:
             need(isinstance(args.commit, str) and
                  re.fullmatch(r'[0-9a-f]{40}', args.commit), 'receipt needs a full source commit SHA')
@@ -277,6 +321,14 @@ def main():
         else:
             print('DRY RUN: no network request; no file submitted.')
         return 0
+    except SubmissionError as error:
+        if receipt is not None:
+            receipt['error'] = error.diagnostics
+            try:
+                args.receipt.write_text(json.dumps(receipt, indent=2) + '\n', encoding='utf-8')
+            except OSError:
+                print('STOP: could not persist submission diagnostic receipt.', file=sys.stderr)
+        print('STOP:', error, file=sys.stderr)
     except Invalid as error:
         print('STOP:', error, file=sys.stderr)
     except (OSError, ValueError, KeyError, TypeError, zipfile.BadZipFile, RuntimeError, NotImplementedError):

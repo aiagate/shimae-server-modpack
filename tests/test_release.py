@@ -229,6 +229,108 @@ class ReleaseTests(unittest.TestCase):
             r.submit(b, c, {}, '', factory)
         factory.assert_not_called()
 
+    def test_http_diagnostics_do_not_read_or_record_untrusted_server_text(self):
+        b, c = self.fixture()
+        for status in (302, 401, 403, 429, 500):
+            factory = Mock()
+            conn = factory.return_value
+            response = conn.getresponse.return_value
+            response.status = status
+            response.reason = 'dummy-token user@example.invalid'
+            response.read.return_value = b'X-Api-Token: dummy-token user@example.invalid'
+            conn.close.side_effect = OSError('dummy-token')
+            with self.subTest(status=status), self.assertRaises(r.SubmissionError) as error:
+                r.submit(b, c, {}, 'dummy-token', factory)
+            self.assertEqual(error.exception.diagnostics, {
+                'category': 'http_non_success', 'phase': 'response_headers',
+                'http_status': status, 'response_body_recorded': False})
+            self.assertNotIn('dummy-token', str(error.exception))
+            self.assertNotIn('user@example.invalid', json.dumps(error.exception.diagnostics))
+            response.read.assert_not_called()
+            response.getheader.assert_not_called()
+            conn.request.assert_called_once()
+
+    def test_transport_categories_are_safe_and_preserve_known_http_status(self):
+        b, c = self.fixture()
+        for phase, failure, category, status in (
+                ('request', r.ssl.SSLError('dummy-token'), 'tls_error', None),
+                ('getresponse', TimeoutError('user@example.invalid'), 'timeout', None),
+                ('request', OSError('dummy-token'), 'connection_error', None),
+                ('getresponse', r.http.client.BadStatusLine('dummy-token'), 'http_protocol_error', None),
+                ('read', TimeoutError('dummy-token'), 'timeout', 200)):
+            factory = Mock()
+            conn = factory.return_value
+            response = conn.getresponse.return_value
+            response.status = 200
+            target = response.read if phase == 'read' else getattr(conn, phase)
+            target.side_effect = failure
+            with self.subTest(phase=phase, category=category), self.assertRaises(r.SubmissionError) as error:
+                r.submit(b, c, {}, 'dummy-token', factory)
+            self.assertEqual(error.exception.diagnostics['category'], category)
+            self.assertEqual(error.exception.diagnostics['http_status'], status)
+            self.assertNotIn('dummy-token', str(error.exception))
+            self.assertNotIn('user@example.invalid', str(error.exception))
+            conn.request.assert_called_once()
+            conn.close.assert_called_once()
+        factory = Mock(side_effect=OSError('dummy-token'))
+        with self.assertRaises(r.SubmissionError) as error:
+            r.submit(b, c, {}, 'dummy-token', factory)
+        self.assertEqual(error.exception.diagnostics['phase'], 'connection_setup')
+
+    def test_response_diagnostics_keep_status_without_body_content(self):
+        b, c = self.fixture()
+        for body, category in ((b'not-json dummy-token', 'invalid_json_response'),
+                               (b'{"id":1,"id":2}', 'invalid_json_response'),
+                               (b'{"id": "dummy-token"}', 'missing_valid_file_id'),
+                               (b'a' * 65537, 'response_too_large')):
+            factory = Mock()
+            conn = factory.return_value
+            response = conn.getresponse.return_value
+            response.status = 201
+            response.read.return_value = body
+            with self.subTest(category=category), self.assertRaises(r.SubmissionError) as error:
+                r.submit(b, c, {}, 'dummy-token', factory)
+            self.assertEqual(error.exception.diagnostics['category'], category)
+            self.assertEqual(error.exception.diagnostics['http_status'], 201)
+            self.assertNotIn('dummy-token', json.dumps(error.exception.diagnostics))
+            response.read.assert_called_once_with(65537)
+            conn.request.assert_called_once()
+
+    def test_public_receipt_and_log_include_only_safe_failure_diagnostics(self):
+        import tempfile
+        from contextlib import redirect_stderr, redirect_stdout
+        b, c = self.fixture()
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            (root / 'pack.zip').write_bytes(b)
+            (root / 'release.json').write_text(json.dumps(c))
+            (root / 'changes.md').write_text('test changes')
+            receipt = root / 'receipt.json'
+            args = ['release.py', '--zip', str(root / 'pack.zip'), '--config',
+                    str(root / 'release.json'), '--changelog', str(root / 'changes.md'),
+                    '--receipt', str(receipt), '--commit', 'a' * 40, '--submit']
+            factory = Mock()
+            response = factory.return_value.getresponse.return_value
+            response.status = 403
+            response.read.return_value = b'dummy-token user@example.invalid'
+            invoke = r.submit
+            logs = io.StringIO()
+            with patch.object(sys, 'argv', args), \
+                    patch.dict(r.os.environ, {'CURSEFORGE_API_TOKEN': 'dummy-token'}), \
+                    patch.object(r, 'submit', side_effect=lambda *a: invoke(*a, factory)), \
+                    redirect_stdout(logs), redirect_stderr(logs):
+                self.assertEqual(r.main(), 1)
+            data = json.loads(receipt.read_text())
+            self.assertEqual(data['status'], 'submission_unconfirmed')
+            self.assertIsNone(data['file_id'])
+            self.assertEqual(data['error']['http_status'], 403)
+            self.assertEqual(data['error']['category'], 'http_non_success')
+            for forbidden in ('dummy-token', 'user@example.invalid', 'X-Api-Token'):
+                self.assertNotIn(forbidden, logs.getvalue() + receipt.read_text())
+            self.assertIn('HTTP 403', logs.getvalue())
+            response.read.assert_not_called()
+            factory.return_value.request.assert_called_once()
+
     def test_dry_run_no_network(self):
         import tempfile
         b, c = self.fixture()

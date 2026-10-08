@@ -38,6 +38,8 @@ python3 scripts/release.py --zip /path/client-app-export.zip
 
 `submit=true`では既存`curseforge` Environmentを利用して、同じrunのclient artifact IDだけを固定して取得します。`skip-decompress:true`で元ZIPを展開せず、同じcommitの設定とSHAを再検査し、同じバイトを一度だけUpload APIへPOSTします。API受付は審査・公開完了とは区別します。受付不明時は作者画面で確認し、自動再送しません。
 
+提出失敗のreceiptにはHTTP status、固定のエラー分類、処理段階だけを記録します。HTTP拒否、TLS・通信・timeout・HTTP protocol異常、不正JSON・file ID欠落等を区別し、応答本文・認証ヘッダー・例外の生の文字列は記録しません。失敗時の受付状態は引き続き未確認とし、診断分類だけを根拠に再提出しません。
+
 既存Secret `CURSEFORGE_API_TOKEN`、Variable `CURSEFORGE_SUBMISSION_ENABLED=true`、workflowのmain限定・手動起動を利用します。Environmentの保護ルールは現在ありません。このローカル修正でSecretや権限を設定しません。Token値はチャット・Git・コマンド引数・ログへ載せません。
 
 公開までには、修正のPR反映・CI・レビューとマージ、正本asset登録、手動検査とclient提出、CurseForge審査と作者画面での手動公開が必要です。完了はCurseForgeで利用者がインストールできる公開状態を確認して判断します。Git入力・Release・artifactが公開される運用は本人確認済みです。
