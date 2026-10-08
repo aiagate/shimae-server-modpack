@@ -40,6 +40,8 @@ python3 scripts/release.py --zip /path/client-app-export.zip
 
 提出失敗のreceiptにはHTTP status、固定のエラー分類、処理段階だけを記録します。HTTP拒否、TLS・通信・timeout・HTTP protocol異常、不正JSON・file ID欠落等を区別し、応答本文・認証ヘッダー・例外の生の文字列は記録しません。失敗時の受付状態は引き続き未確認とし、診断分類だけを根拠に再提出しません。
 
+HTTP拒否時は応答を64 KiBまで読み取り、既知の数値errorCode、許可したvalidationフィールド名・固定コードだけをreceiptの`response_summary`へ抽出します。errorMessage・message・未知のキーやコード・HTML等の本文は残しません。公式文書にはvalidationエラーのコード一覧がないため、未知の詳細は推測せず省略します。`diagnose.yml`は同じEnvironment Secretを用いる読み取り専用GETで、今回の3版名に対応する公開IDだけを調べます。ファイル投稿は行いません。
+
 既存Secret `CURSEFORGE_API_TOKEN`、Variable `CURSEFORGE_SUBMISSION_ENABLED=true`、workflowのmain限定・手動起動を利用します。Environmentの保護ルールは現在ありません。このローカル修正でSecretや権限を設定しません。Token値はチャット・Git・コマンド引数・ログへ載せません。
 
 公開までには、修正のPR反映・CI・レビューとマージ、正本asset登録、手動検査とclient提出、CurseForge審査と作者画面での手動公開が必要です。完了はCurseForgeで利用者がインストールできる公開状態を確認して判断します。Git入力・Release・artifactが公開される運用は本人確認済みです。

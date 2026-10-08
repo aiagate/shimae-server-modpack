@@ -41,9 +41,11 @@ class Invalid(ValueError):
 class SubmissionError(Invalid):
     """Fixed diagnostic fields only; never retain server text or exceptions."""
 
-    def __init__(self, category, phase, http_status=None):
+    def __init__(self, category, phase, http_status=None, response_summary=None):
         self.diagnostics = {'category': category, 'phase': phase,
                             'http_status': http_status, 'response_body_recorded': False}
+        if response_summary is not None:
+            self.diagnostics['response_summary'] = response_summary
         status = f', HTTP {http_status}' if http_status is not None else ''
         super().__init__(f'Submission not confirmed ({category}, {phase}{status}). '
                          'Check author dashboard before any manual retry.')
@@ -218,6 +220,74 @@ def token_check(token):
          'CURSEFORGE_API_TOKEN is not configured or invalid')
 
 
+ERROR_FIELDS = frozenset(('metadata', 'file', 'projectId', 'projectID', 'changelog',
+                         'changelogType', 'displayName', 'gameVersions', 'gameVersionNames',
+                         'releaseType', 'isMarkedForManualRelease', 'parentFileID', 'relations'))
+ERROR_CODES = frozenset(('required', 'invalid', 'invalid_value', 'not_found',
+                        'unknown_game_version', 'invalid_game_version', 'invalid_release_type',
+                        'invalid_metadata', 'project_not_approved'))
+
+
+def safe_api_error(raw):
+    """Project bounded JSON onto fixed keys/enums; never return free text."""
+    summary = {'response_format': 'too_large' if len(raw) > 65536 else 'non_json',
+               'validation_fields': [], 'validation_codes': []}
+    if len(raw) > 65536:
+        return summary
+    try:
+        data = parse_json(raw)
+    except (ValueError, UnicodeError, RecursionError):
+        return summary
+    summary['response_format'] = 'json_object' if isinstance(data, dict) else 'json_other'
+    if not isinstance(data, dict):
+        return summary
+    # Observed Upload API errorCode is an HTTP code. Unknown numbers/strings
+    # are deliberately omitted; there is no published validation-code catalog.
+    code = data.get('errorCode')
+    if type(code) is int and code in (400, 401, 403, 404, 409, 413, 415, 422, 429, 500, 502, 503, 504):
+        summary['error_code'] = code
+    fields, codes = set(), set()
+
+    def field(value):
+        if not isinstance(value, str):
+            return
+        match = re.fullmatch(r'(?:metadata\.)?([A-Za-z]+)(?:\[[0-9]{1,6}\])?', value)
+        if match and match[1] in ERROR_FIELDS:
+            fields.add(match[1])
+
+    def entry(value):
+        if not isinstance(value, dict):
+            return
+        field(value.get('field'))
+        code = value.get('code')
+        if isinstance(code, str) and code in ERROR_CODES:
+            codes.add(code)
+
+    entry(data)
+    for key in ('errors', 'validationErrors', 'ModelState'):
+        errors = data.get(key)
+        if isinstance(errors, dict):
+            for name, values in errors.items():
+                field(name)
+                if isinstance(values, list):
+                    for value in values:
+                        entry(value)
+                else:
+                    entry(values)
+        elif isinstance(errors, list):
+            for value in errors:
+                entry(value)
+    summary.update(validation_fields=sorted(fields), validation_codes=sorted(codes))
+    return summary
+
+
+def read_error_summary(response):
+    try:
+        return safe_api_error(response.read(65537))
+    except (OSError, http.client.HTTPException):
+        return {'response_format': 'read_failed', 'validation_fields': [], 'validation_codes': []}
+
+
 def submit(blob, config, meta, token, connection_factory=http.client.HTTPSConnection):
     token_check(token)
     # Fixed host, no redirects, proxies, query credentials or retry loop.
@@ -241,9 +311,10 @@ def submit(blob, config, meta, token, connection_factory=http.client.HTTPSConnec
             raise SubmissionError('invalid_http_status', phase)
         status = response.status
         if not 200 <= status < 300:
-            # Do not read Location, reason, headers or the error body: these may
-            # contain reflected authentication values or personal information.
-            raise SubmissionError('http_non_success', phase, status)
+            # Retain only known JSON fields/codes, never raw bodies, messages,
+            # Location, reason phrases or headers with reflected credentials.
+            summary = read_error_summary(response)
+            raise SubmissionError('http_non_success', phase, status, summary)
         phase = 'response_body'
         raw = response.read(65537)
         if len(raw) > 65536:
