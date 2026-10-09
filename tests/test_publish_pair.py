@@ -33,7 +33,7 @@ class PublicationTests(unittest.TestCase):
         result=self.call(journal,upload)
         child=upload.call_args_list[1].args[2]
         self.assertEqual(child['parentFileID'],101)
-        self.assertEqual(child['gameVersionNames'],['Server'])
+        self.assertNotIn('gameVersionNames',child)
         self.assertNotIn('gameVersions',child)
         self.assertEqual(result['server_file_id'],102)
         self.call(journal,upload)

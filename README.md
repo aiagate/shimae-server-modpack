@@ -42,10 +42,16 @@ clientにはMOD/Shaderを199固定IDで参照するmanifestと設定を入れ、
 
 ## 認証と審査の範囲
 
-[mainのGET audit](https://github.com/aiagate/shimae-server-modpack/actions/runs/37880105945)はHTTP200で成功済みです。同じ版名が複数種別に存在するため、公式の`gameVersionNames`を使用し数値IDは推測しません。診断には空白等のboolean、固定分類と、既知のAPI用語だけを残したエラー説明を保存します。token値・URL・メール・未知の値は伏せ、tokenの先頭文字・長さ・ハッシュや生の応答本文を出しません。
+[mainのGET audit](https://github.com/aiagate/shimae-server-modpack/actions/runs/37880105945)はHTTP200で成功済みです。同じ版名が複数種別に存在するため、公式の`gameVersionNames`を使用し数値IDは推測しません。childは親の版情報を継承し、独自のgameVersions/gameVersionNamesを送りません。診断には空白等のboolean、固定分類と、既知のAPI用語だけを残したエラー説明を保存します。token値・URL・メール・未知の値は伏せ、tokenの先頭文字・長さ・ハッシュや生の応答本文を出しません。
 
 [作者Upload token](https://authors.curseforge.com/#/settings/api-tokens)を[GitHub curseforge Environment](https://github.com/aiagate/shimae-server-modpack/settings/environments/23755335004/edit)の`CURSEFORGE_API_TOKEN`へ本人が設定済みです。`X-Api-Token`を使い、Core APIのキーとは区別します。
 
 [公式審査規約](https://support.curseforge.com/support/solutions/articles/9000197279-project-and-modpack-moderation-policies)にはAppでの作成・App生成manifestの編集禁止が書かれています。一方、[TerraFirmaGregのPakku workflow](https://github.com/TerraFirmaGreg-Team/Modpack-Modern/blob/305ea8e4a54025b0b46fdc4cfc27ff96611dc3c3/.github/workflows/build.yml)と[公開ファイル](https://www.curseforge.com/minecraft/modpacks/terrafirmagreg-modern/files/8037324)、[Trashlandsのpackwiz workflow](https://github.com/Flatts3000/trashlands/blob/6e8748be14363ff03ecfdb493ee061ea9f605094/.github/workflows/release.yml)には標準toolでの生成・API提出の実績があります。他projectの実績は、本projectや軽量Server Packの審査保証ではありません。今回の方式はrepository-owned source/packwiz outputと明示し、App生成という虚偽の出所にはしません。手動App Exportが唯一の方法とは扱いません。
 
 MODの実機動作、全依存グラフ、審査受理は静的検査の範囲外です。自作部分はMIT、第三者のMOD/Shader/設定コメント等の権利は各作者のままです。LICENSEとLICENSE-SCOPE.txtを参照してください。
+
+## 0.0.2 server提出の回復
+
+最初のActions run `37883897099`はclient `9104708`を受け付け、serverはHTTP400/error1013で停止しました。作者画面で親のApproved/公開と追加server未登録を確認しています。原因は未確定です。任意のchild版名指定を省き、公開APIライブラリと同様に親の版情報を継承します。
+
+専用 **Recover saved 0.0.2 server submission** は旧Releaseの正確な両ZIP、元runのreceipt、受付済み親の公開状態/CDN全SHAを照合します。clientを再投稿せず、元server claimも残し、別の一度限りrecovery claimをPOST前に保存します。受付IDは元server resultへ記録します。受付不明の回復claimがある場合は再実行しても停止し、勝手に削除しません。既定はsubmit=falseです。この回復は0.0.2の失敗に限定し、通常の版更新用ではありません。
