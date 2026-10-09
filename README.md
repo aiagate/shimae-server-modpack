@@ -1,6 +1,6 @@
 # Shimae Server Modpack
 
-Minecraft 1.21.1 / NeoForge 21.1.243。リポジトリの固定MOD参照と設定から、標準packwizでclient manifest ZIPと軽量Server Packを生成し、GitHub ActionsからCurseForge project **1733082**へ親子提出します。通常の更新に手動App Exportは不要です。
+Minecraft 1.21.1 / NeoForge 21.1.243。リポジトリの固定MOD参照と設定から、標準packwizでclient manifest ZIPと軽量Server Packを生成し、GitHub ActionsからCurseForge project **1733082**へ親子提出します。通常の更新に手動App Exportは不要です。Upload APIの提出は自動化していますが、追加ファイルの **Server Pack区分は作者画面で設定**します。公開後の専用検証が、この区分まで確認します。
 
 ## 更新するもの
 
@@ -17,10 +17,12 @@ Minecraft 1.21.1 / NeoForge 21.1.243。リポジトリの固定MOD参照と設�
 1. 上記を編集し、PRのCIで生成ZIP・移行差分・秘密情報検査・内容の再現性を確認してmainへマージします。
 2. Actionsの **Manual client and server submission** をmainから`submit=false`で起動し、生成物とreceiptを確認します。
 3. 確認したmainから`submit=true`で起動します。`manual_release=true`なら審査後も作者の手動公開を待ちます。審査後の自動公開まで進める場合はfalseを選びます。
+4. client/serverの審査後、作者画面で親clientの追加serverを開き、**Additional File Info → Server Pack** を選んで保存します。同じ受付済みファイルを編集し、再アップロードしません。
+5. **Read-only publication verification** のreceiptで `publication_complete: true` を確認します。両方のApproved、親子関係、Server Pack区分、CDNの全SHAが揃って初めて公開完了です。
 
 main限定の手動workflowです。タグpushだけでは投稿しません。投稿jobは既存`curseforge` Environmentを使います。required reviewerは未設定なので、上記の手動起動が公開の意思確認です。Secret/保護ルールはこの変更で更新しません。
 
-同じrunのartifact IDを固定し、両ZIPとsource SHAを再検証します。GET audit通過後に検証済みZIPをGitHub Releaseへ保存し、client受付IDを`parentFileID`としてServer Packを提出します。新しいタグ`v<version>`はそのmain commitに作ります。既存同名assetはSHA/サイズ一致時だけ再利用し、上書きしません。API受付・審査・公開は別の状態です。
+同じrunのartifact IDを固定し、両ZIPとsource SHAを再検証します。GET audit通過後に検証済みZIPをGitHub Releaseへ保存し、client受付IDを`parentFileID`としてServer Packを提出します。新しいタグ`v<version>`はそのmain commitに作ります。既存同名assetはSHA/サイズ一致時だけ再利用し、上書きしません。API受付・審査・公開・Server Pack区分は別の状態です。Upload APIでparentFileIDを指定するだけでは、今回のserverは一般のAdditional Fileとして受理されました。公式Upload APIにServer Pack区分の設定方法は記載されていないため、未確認の`isServerPack`等は送りません。作者画面で設定できることを実際に確認しています。
 
 POST前claimと受付後resultをReleaseへ上書きなしで記録します。結果のあるファイルを再送せず、claimだけなら新しい手動起動でも停止します。`mode=server_only`で既存の親を使えます。外部で提出済みの親は`existing_client_file_id`を指定すると、公開状態と公式CDNの全SHAが一致した場合だけ採用します。受付不明は作者画面/receiptを確認してから対応し、ファイル削除や盲目的な再投稿はしません。
 
@@ -55,3 +57,11 @@ MODの実機動作、全依存グラフ、審査受理は静的検査の範囲�
 最初のActions run `37883897099`はclient `9104708`を受け付け、serverはHTTP400/error1013で停止しました。作者画面で親のApproved/公開と追加server未登録を確認しています。原因は未確定です。任意のchild版名指定を省き、公開APIライブラリと同様に親の版情報を継承します。
 
 専用 **Recover saved 0.0.2 server submission** は旧Releaseの正確な両ZIP、元runのreceipt、受付済み親の公開状態/CDN全SHAを照合します。clientを再投稿せず、元server claimも残し、別の一度限りrecovery claimをPOST前に保存します。受付IDは元server resultへ記録します。受付不明の回復claimがある場合は再実行しても停止し、勝手に削除しません。既定はsubmit=falseです。この回復は0.0.2の失敗に限定し、通常の版更新用ではありません。
+
+## 公開後の検証
+
+`verify-publication.yml`は、実提出workflowまたはserver回復workflowの成功後にmainの読み取り権限だけで動きます。Upload tokenもCore API keyも使わず、Releaseの受付journalとZIP digest、公開Web APIのApproved、公開追加ファイルの親ID、Server Pack区分、両CDNの全SHAを検証します。公開Web APIの応答形式が変わった場合も完了と推測しません。
+
+審査待ちは最大10分読み取りで待ちます。その時点でまだ審査中ならreceiptは `publication_complete: false` の待機状態です。workflowが成功しただけでは公開完了と判断しません。審査後に区分を設定して専用workflowを手動起動し、完了receiptを確認します。Approvedでも区分未設定、親ID不一致、SHA不一致、型の判断が曖昧なら検証を失敗させます。`submit=false`だけの通常preflightは自動検証を起動しません。
+
+0.0.2はclient `9104708` / server `9104783`がApprovedで、同じserver受付済みファイルのServer Pack区分を作者画面で設定しました。公開APIの区分・親子関係・CDN全SHAも一致しています。元のZIPと公開済み0.0.1は保持しています。
