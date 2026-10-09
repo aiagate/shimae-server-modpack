@@ -12,11 +12,25 @@ WANTED = ('1.21.1', 'NeoForge', 'Client')
 LIMIT = 2 * 1024 * 1024
 
 
+def credential_preflight(token):
+    """Boolean input properties only: no value, prefix, length or fingerprint.
+
+    Upload API does not document a token-format discriminator. These properties
+    can detect copying mistakes, but cannot prove Upload vs Core API origin.
+    """
+    return {'present': bool(token),
+            'has_whitespace': any(c.isspace() for c in token),
+            'has_control_characters': any(ord(c) < 32 or ord(c) == 127 for c in token),
+            'has_non_ascii_characters': any(ord(c) >= 128 for c in token),
+            'token_kind_verified_from_format': False}
+
+
 def audit(token, connection_factory=http.client.HTTPSConnection):
     token_check(token)
     report = {'method': 'GET', 'path': '/api/game/versions', 'http_status': None,
               'status': 'unconfirmed', 'requested_names': list(WANTED),
-              'matched_versions': [], 'missing_names': None}
+              'matched_versions': [], 'missing_names': None,
+              'credential_preflight': credential_preflight(token)}
     conn = None
     try:
         conn = connection_factory(HOST, timeout=30)
@@ -81,9 +95,10 @@ def main():
     args = parser.parse_args()
     try:
         # Require a new writable receipt before any request.
+        token = os.environ.get('CURSEFORGE_API_TOKEN', '')
         with args.receipt.open('x') as handle:
-            handle.write('{"status":"not_started"}\n')
-        result = audit(os.environ.get('CURSEFORGE_API_TOKEN', ''))
+            json.dump({'status': 'not_started', 'credential_preflight': credential_preflight(token)}, handle)
+        result = audit(token)
         args.receipt.write_text(json.dumps(result, indent=2) + '\n')
         print(json.dumps(result, indent=2))
         return 0 if result['status'] == 'read_complete' else 1

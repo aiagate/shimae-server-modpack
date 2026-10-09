@@ -48,9 +48,9 @@ python3 scripts/release.py --zip /path/client-app-export.zip
 
 ## 認証の切り分けと0.0.2の準備
 
-[読取専用audit 37875776072](https://github.com/aiagate/shimae-server-modpack/actions/runs/37875776072)はHTTP 400、`error_code=3`で失敗しました。ZIPや投稿metadataのないGET `/api/game/versions`でも拒否されています。公式文書にこのコードの意味の一覧はなく、失効や種類違いとは断定しません。既存tokenでAPI投稿できる状態は確認できていません。
+[読取専用audit 37875776072](https://github.com/aiagate/shimae-server-modpack/actions/runs/37875776072)はHTTP 400、`error_code=3`で失敗しました。ZIPや投稿metadataのないGET `/api/game/versions`でも拒否されています。公式文書にこのコードの意味の一覧はなく、失効や種類違いとは断定しません。追加の対照確認として、秘密値なしのGETはHTTP401、明示的な合成無効トークンのGETはHTTP400/code3となり、後者の応答にはトークン解析・形式エラーを示す文言がありました（本文は保存・表示していません）。これが同じコードを再現する公式API側の観測根拠です。コード3を全場面で特定原因に対応させる公式一覧はなく、実Secretの種類違い・失効まで断定しません。今後のauditではこの文言を`malformed_authentication`という固定分類だけで記録します。既存tokenでAPI投稿できる状態は確認できていません。元のauditでは空・前後空白・制御文字の基本検査を通過し、実際のGET応答を受けています。今回、空白・制御文字・非ASCIIの有無をbooleanだけで記録する診断も追加しました。値・先頭文字・文字数・ハッシュは記録しません。公式にUpload tokenとCore keyを区別する文字列形式の規約は見つからず、文字列の形式やSecretの存在だけでは種類を確定できません。`token_kind_verified_from_format=false`は診断の限界を明示する値です。
 
-本人だけが[作者画面のAPI Tokens](https://authors.curseforge.com/)でUpload API用tokenを作成・確認し、GitHub Environment `curseforge`のSecret `CURSEFORGE_API_TOKEN`に設定します。Core APIの`x-api-key`とは別です。チャット、コマンド引数、Git、artifactへ値を出しません。設定後は`diagnose.yml`のGETで確認します。Secret更新・tokenの取得やコピー・アカウント変更をこのPRでは行いません。既存project ID `1733082`を使うため、新しいCurseForge projectの作成は不要です。
+本人だけが[作者画面のAPI Tokens](https://authors.curseforge.com/#/settings/api-tokens)でUpload API用tokenを作成・確認し、[GitHub Environment `curseforge`の設定画面](https://github.com/aiagate/shimae-server-modpack/settings/environments/23755335004/edit)のEnvironment secretsから`CURSEFORGE_API_TOKEN`の更新画面を開き、設定します。作者用Upload APIは`X-Api-Token`ヘッダーに生成されたトークンをそのまま渡します。Core APIの`x-api-key`とは別です。GETは公式の`https://minecraft.curseforge.com/api/game/versions`、POSTは同ホストの`/api/projects/{projectId}/upload-file`、multipartの`metadata`/`file`です。実装はこれらの指定と一致しています。チャット、コマンド引数、Git、artifactへ値を出しません。設定後は`diagnose.yml`のGETで確認します。Secret更新・tokenの取得やコピー・アカウント変更をこのPRでは行いません。既存project ID `1733082`を使うため、新しいCurseForge projectの作成は不要です。
 
 0.0.2の正式App clientが届いたら、その原本とmanifestを保全し、版・MOD参照・設定差分をレビューしてclient lock、`release.json`、CHANGELOGを更新します。別のserver App exportは不要です。このPRで0.0.1のmanifestを0.0.2へ書き換えたり、未受領の正式clientを作ったりはしません。変更をmainへ反映する前にPRのCIを確認します。マージ・タグ・実投稿はこの作業の実行範囲外です。
 
@@ -64,11 +64,11 @@ ZIPのCRC、SHA256、manifest・版・loader・参照ID、危険なパス、重�
 
 ## 軽量サーバー導入ZIPの形式
 
-`scripts/serverpack.py`はApp clientのmanifestとmodlistをバイトそのまま保持し、現行configからclient用9件を除いた309件、ライセンス文書2件、server参照189件の記録、Compose例、導入手順を格納します。MOD JAR・loader・Java・world・EULA同意・認証情報を同梱しません。0.0.1材料による静的検査では3,033,671 bytesです。エントリ順、時刻、属性を固定し、圧縮ライブラリによる差を避けて無圧縮ZIPにしています。公開済み683 MB版は変更しません。2つのZIPは役割が違います。
+`scripts/serverpack.py`はApp clientのmanifestとmodlistをバイトそのまま保持し、現行configからclient用9件を除いた309件、ライセンス文書2件、server参照189件の記録、Compose例、導入手順を格納します。ルートは`manifest.json`、`modlist.html`、`SERVER-REFERENCES.json`、`compose.yaml`、`README-SERVER.md`です。`overrides/config/`に309設定、`overrides/`直下にライセンス文書2件を置きます。未変更manifestは**client用199件**です。`SERVER-REFERENCES.json`はserver用189件の記録で、App manifestの代替ではありません。MOD JAR・loader・Java・world・EULA同意・認証情報を同梱しません。0.0.1材料による静的検査では3,033,671 bytesです。主成分はconfig本文2,903,312 bytesです。エントリ順、時刻、属性を固定し、圧縮ライブラリによる差を避けて無圧縮ZIPにしています。公開済み683 MB版は変更しません。2つのZIPは役割が違います。
 
 標準の[itzg AUTO_CURSEFORGE](https://docker-minecraft-server.readthedocs.io/en/latest/types-and-platforms/mod-platforms/auto-curseforge/)はローカルZIPを`CF_MODPACK_ZIP`で読めます。Composeは元ZIPを残して展開した新規フォルダから起動する例です。manifestの199件を編集せず、`CF_EXCLUDE_MODS`で10件を除外、`CF_FORCE_INCLUDE_MODS`で意図した189件を指定します。設定はZIPのoverridesから導入されます。java21イメージは現在Core API keyを内蔵しているため、追加キーの作成は一律必須にしません。自前キーを使う場合はDocker secret等で渡します。自動取得が禁止されたMODは標準ツールの指示に従ってブラウザで該当file IDを取得します。独自Pythonダウンローダーはありません。
 
-TrueNASでは別のCustom Appで同等のread-only mountと新しい/data領域を使えます。既存サービスのパス・world・composeを上書きしません。EULAは本人が確認して明示設定します。このZIPをCurseForge AppにImportするだけでサーバーが起動するという案内はしません。実機動作は本人が確認する範囲で、Docker/Javaの起動試験は実施していません。
+TrueNASでは別のCustom Appで同等のread-only mountと新しい/data領域を使えます。この実行環境には既存composeがなく、既存service名・host pathは確認していません。したがって既存composeへの確定差分とは表示しません。もし従来の`TYPE=CURSEFORGE`/`CF_SERVER_MOD`方式なら、導入方式の変更は`TYPE=AUTO_CURSEFORGE`、`CF_MODPACK_ZIP`へのZIPパス指定、`CF_SLUG`、同梱Composeの除外・保持3変数の移植、およびZIPとdownloadsのread-only mount追加です。従来の`CF_SERVER_MOD`は外します。変数の正確な189 IDの列は生成したComposeからそのまま使い、手入力で作り直しません。既存のport・memory・world領域の移行を自動では行いません。既存サービスのパス・world・composeを上書きしません。EULAは本人が確認して明示設定します。このZIPをCurseForge AppにImportするだけでサーバーが起動するという案内はしません。実機動作は本人が確認する範囲で、Docker/Javaの起動試験は実施していません。
 
 [公式Server Packガイド](https://blog.curseforge.com/server-packs-tutorial/)に従い対応clientのAdditional Fileへ紐づける提出metadataを用意します。ただし公式資料にこの導入用レイアウトの受理保証はなく、manifest形式のServer Packを一律禁止する記述も確認できていません。Appで出力したclientと、自動生成したサーバー導入用ZIPを区別して表示します。審査結果は実際の提出後に確認する必要があります。
 

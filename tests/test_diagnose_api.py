@@ -53,3 +53,33 @@ class AuditTests(unittest.TestCase):
         with self.assertRaises(d.Invalid):
             d.audit('', factory)
         factory.return_value.request.assert_called_once()
+
+
+class CredentialPreflightTests(unittest.TestCase):
+    def test_reports_properties_without_token_value_prefix_length_or_hash(self):
+        token=' synthetic-example-value\n'
+        result=d.credential_preflight(token)
+        self.assertTrue(result['present'])
+        self.assertTrue(result['has_whitespace'])
+        self.assertTrue(result['has_control_characters'])
+        self.assertFalse(result['token_kind_verified_from_format'])
+        self.assertTrue(all(type(v) is bool for v in result.values()))
+        self.assertNotIn(token,json.dumps(result))
+    def test_opaque_format_does_not_prove_token_kind(self):
+        result=d.credential_preflight('synthetic-example-value')
+        self.assertFalse(result['has_whitespace'])
+        self.assertFalse(result['has_control_characters'])
+        self.assertFalse(result['has_non_ascii_characters'])
+        self.assertFalse(result['token_kind_verified_from_format'])
+
+
+class MalformedTokenResponseTests(unittest.TestCase):
+    def test_token_parse_error_is_fixed_hint_and_secret_text_is_discarded(self):
+        factory=Mock(); response=factory.return_value.getresponse.return_value
+        response.status=400
+        response.read.return_value=b'{"errorCode":3,"errorMessage":"Cannot parse token synthetic-secret-value"}'
+        result=d.audit('dummy-token',factory)
+        self.assertEqual(result['response_summary']['error_code'],3)
+        self.assertEqual(result['response_summary']['message_hints'],['malformed_authentication'])
+        self.assertNotIn('synthetic-secret-value',json.dumps(result))
+        factory.return_value.request.assert_called_once()
