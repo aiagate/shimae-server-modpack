@@ -50,7 +50,7 @@ python3 scripts/release.py --zip /path/client-app-export.zip
 
 [読取専用audit 37875776072](https://github.com/aiagate/shimae-server-modpack/actions/runs/37875776072)はHTTP 400、`error_code=3`で失敗しました。ZIPや投稿metadataのないGET `/api/game/versions`でも拒否されています。公式文書にこのコードの意味の一覧はなく、失効や種類違いとは断定しません。既存tokenでAPI投稿できる状態は確認できていません。
 
-本人だけが[作者画面のAPI Tokens](https://authors.curseforge.com/account/api-tokens)でUpload API用tokenを作成・確認し、GitHub Environment `curseforge`のSecret `CURSEFORGE_API_TOKEN`に設定します。Core APIの`x-api-key`とは別です。チャット、コマンド引数、Git、artifactへ値を出しません。設定後は`diagnose.yml`のGETで確認します。Secret更新・tokenの取得やコピー・アカウント変更をこのPRでは行いません。既存project ID `1733082`を使うため、新しいCurseForge projectの作成は不要です。
+本人だけが[作者画面のAPI Tokens](https://authors.curseforge.com/)でUpload API用tokenを作成・確認し、GitHub Environment `curseforge`のSecret `CURSEFORGE_API_TOKEN`に設定します。Core APIの`x-api-key`とは別です。チャット、コマンド引数、Git、artifactへ値を出しません。設定後は`diagnose.yml`のGETで確認します。Secret更新・tokenの取得やコピー・アカウント変更をこのPRでは行いません。既存project ID `1733082`を使うため、新しいCurseForge projectの作成は不要です。
 
 0.0.2の正式App clientが届いたら、その原本とmanifestを保全し、版・MOD参照・設定差分をレビューしてclient lock、`release.json`、CHANGELOGを更新します。別のserver App exportは不要です。このPRで0.0.1のmanifestを0.0.2へ書き換えたり、未受領の正式clientを作ったりはしません。変更をmainへ反映する前にPRのCIを確認します。マージ・タグ・実投稿はこの作業の実行範囲外です。
 
