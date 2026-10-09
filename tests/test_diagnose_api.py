@@ -28,10 +28,10 @@ class AuditTests(unittest.TestCase):
         for forbidden in ('dummy-token', 'user@example.invalid', 'private'):
             self.assertNotIn(forbidden, json.dumps(result))
 
-    def test_missing_or_ambiguous_version_names_are_not_guessed(self):
+    def test_missing_names_are_not_hidden_by_duplicate_rows(self):
         for rows, category in (([], 'missing_version_names'),
                                ([{'name': 'Client', 'id': 1, 'gameVersionTypeID': 2}] * 2,
-                                'ambiguous_version_names')):
+                                'missing_version_names')):
             factory = Mock()
             response = factory.return_value.getresponse.return_value
             response.status = 200
@@ -83,3 +83,18 @@ class MalformedTokenResponseTests(unittest.TestCase):
         self.assertEqual(result['response_summary']['message_hints'],['malformed_authentication'])
         self.assertNotIn('synthetic-secret-value',json.dumps(result))
         factory.return_value.request.assert_called_once()
+
+
+class VersionNameVariantTests(unittest.TestCase):
+    def test_required_names_in_multiple_types_do_not_require_guessing_numeric_ids(self):
+        factory=Mock(); response=factory.return_value.getresponse.return_value
+        response.status=200
+        rows=[{'name':name,'id':i+1,'gameVersionTypeID':100+i} for i,name in enumerate(d.WANTED)]
+        rows.append({'name':'1.21.1','id':1000,'gameVersionTypeID':1})
+        response.read.return_value=json.dumps(rows).encode()
+        result=d.audit('dummy-token',factory)
+        self.assertEqual(result['status'],'read_complete')
+        self.assertEqual(result['missing_names'],[])
+        self.assertEqual(result['category'],'all_metadata_names_present_with_variants')
+        self.assertFalse(result['numeric_ids_selected'])
+        self.assertEqual(len(result['matched_versions']),4)

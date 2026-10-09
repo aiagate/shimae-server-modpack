@@ -116,4 +116,25 @@ class AuthenticationPreflightTests(unittest.TestCase):
             github.assert_not_called(); publisher.assert_not_called()
             self.assertEqual(json.loads(receipt.read_text())['status'],'authentication_preflight_failed')
 
+class VersionVariantPublicationTests(unittest.TestCase):
+    def test_documented_string_metadata_passes_audit_with_multiple_type_ids(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp); source=root/'server.json'; source.write_text(json.dumps({'sha256':'b'*64}))
+            args=['publish_pair.py','--client',str(root/'client.zip'),'--server',str(root/'server.zip'),
+                '--server-receipt',str(source),'--receipt',str(root/'receipt.json'),
+                '--state',str(root/'absent.json'),'--submit']
+            report={'status':'read_complete','category':'all_metadata_names_present_with_variants','missing_names':[]}
+            with patch.object(sys,'argv',args), patch.dict('os.environ',{
+                    'GITHUB_REF':'refs/heads/main','CURSEFORGE_SUBMISSION_ENABLED':'true',
+                    'CURSEFORGE_API_TOKEN':'synthetic-token'}), \
+                 patch('verify_app_exports.load_inputs',return_value=({'version':'synthetic-next'}, {}, {}, {'client':dict(CONFIG)})), \
+                 patch('verify_app_exports.check_blob',return_value='a'*64), \
+                 patch('verify_app_exports.read_blob',return_value=b'test'), \
+                 patch('serverpack.verify_prepared'), \
+                 patch('diagnose_api.audit',return_value=report), \
+                 patch.object(p,'publish_github') as github, \
+                 patch.object(p,'publish',return_value={'status':'synthetic-no-network'}) as publisher:
+                self.assertEqual(p.main(),0)
+            github.assert_called_once(); publisher.assert_called_once()
+
 if __name__=='__main__': unittest.main()

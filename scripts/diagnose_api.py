@@ -65,10 +65,13 @@ def audit(token, connection_factory=http.client.HTTPSConnection):
             report['matched_versions'].append({k: row[k] for k in ('name', 'id', 'gameVersionTypeID')})
         found = {row['name'] for row in report['matched_versions']}
         report.update(status='read_complete', missing_names=[name for name in WANTED if name not in found])
-        if len(found) != len(report['matched_versions']):
-            report['category'] = 'ambiguous_version_names'
-        elif report['missing_names']:
+        # Upload metadata uses documented string names, never guessed numeric IDs.
+        # A name may legitimately occur in multiple gameVersionTypeID groups.
+        report['numeric_ids_selected'] = False
+        if report['missing_names']:
             report['category'] = 'missing_version_names'
+        elif len(found) != len(report['matched_versions']):
+            report['category'] = 'all_metadata_names_present_with_variants'
         else:
             report['category'] = 'all_metadata_names_exist'
         return report

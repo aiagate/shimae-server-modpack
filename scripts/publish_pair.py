@@ -321,7 +321,8 @@ def main():
         release.token_check(os.environ.get('CURSEFORGE_API_TOKEN', ''))
         import diagnose_api
         audit = diagnose_api.audit(os.environ.get('CURSEFORGE_API_TOKEN', ''))
-        if audit['status'] != 'read_complete' or audit.get('category') != 'all_metadata_names_exist':
+        if (audit['status'] != 'read_complete' or audit.get('missing_names') != [] or
+                audit.get('category') not in ('all_metadata_names_exist', 'all_metadata_names_present_with_variants')):
             with args.receipt.open('x') as handle:
                 json.dump(dict(schema_version=1, **identity, status='authentication_preflight_failed',
                     audit=audit), handle, indent=2)
