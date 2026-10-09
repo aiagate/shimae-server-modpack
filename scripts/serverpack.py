@@ -93,6 +93,16 @@ the standard itzg AUTO_CURSEFORGE installer, not a custom downloader.
 5. Check logs before connecting with the matching client. Runtime testing has
    not been performed by this build. Port, memory and host paths are examples.
 
+Existing world migration is a separate operation: this ZIP contains neither
+the world nor server.properties and does not move them. Legacy CURSEFORGE can
+run below CF_BASE_DIR (by default /data/FeedTheBeast), while AUTO_CURSEFORGE
+installs into /data. Identify the actual working directory and level-name first.
+Use a consistent stopped-server copy/snapshot in a separate data directory for
+migration validation. Preserve world and private operational settings locally;
+install MODs/loader from the manifest instead of carrying old runtime binaries.
+Overrides are applied at installation, so compare existing config changes.
+Changing TYPE or replacing the ZIP alone does not transfer an existing world.
+
 The java21 image currently includes a Core API key. If supplying your own, use
 CF_API_KEY_FILE and a Docker secret (or a protected environment variable).
 A Core API key is different from the author Upload API token: never put the

@@ -64,11 +64,23 @@ ZIPのCRC、SHA256、manifest・版・loader・参照ID、危険なパス、重�
 
 ## 軽量サーバー導入ZIPの形式
 
-`scripts/serverpack.py`はApp clientのmanifestとmodlistをバイトそのまま保持し、現行configからclient用9件を除いた309件、ライセンス文書2件、server参照189件の記録、Compose例、導入手順を格納します。ルートは`manifest.json`、`modlist.html`、`SERVER-REFERENCES.json`、`compose.yaml`、`README-SERVER.md`です。`overrides/config/`に309設定、`overrides/`直下にライセンス文書2件を置きます。未変更manifestは**client用199件**です。`SERVER-REFERENCES.json`はserver用189件の記録で、App manifestの代替ではありません。MOD JAR・loader・Java・world・EULA同意・認証情報を同梱しません。0.0.1材料による静的検査では3,033,671 bytesです。主成分はconfig本文2,903,312 bytesです。エントリ順、時刻、属性を固定し、圧縮ライブラリによる差を避けて無圧縮ZIPにしています。公開済み683 MB版は変更しません。2つのZIPは役割が違います。
+`scripts/serverpack.py`はApp clientのmanifestとmodlistをバイトそのまま保持し、現行configからclient用9件を除いた309件、ライセンス文書2件、server参照189件の記録、Compose例、導入手順を格納します。ルートは`manifest.json`、`modlist.html`、`SERVER-REFERENCES.json`、`compose.yaml`、`README-SERVER.md`です。`overrides/config/`に309設定、`overrides/`直下にライセンス文書2件を置きます。未変更manifestは**client用199件**です。`SERVER-REFERENCES.json`はserver用189件の記録で、App manifestの代替ではありません。MOD JAR・loader・Java・world・EULA同意・認証情報を同梱しません。0.0.1材料による静的検査では3,034,375 bytesです。主成分はconfig本文2,903,312 bytesです。エントリ順、時刻、属性を固定し、圧縮ライブラリによる差を避けて無圧縮ZIPにしています。公開済み683 MB版は変更しません。2つのZIPは役割が違います。
 
 標準の[itzg AUTO_CURSEFORGE](https://docker-minecraft-server.readthedocs.io/en/latest/types-and-platforms/mod-platforms/auto-curseforge/)はローカルZIPを`CF_MODPACK_ZIP`で読めます。Composeは元ZIPを残して展開した新規フォルダから起動する例です。manifestの199件を編集せず、`CF_EXCLUDE_MODS`で10件を除外、`CF_FORCE_INCLUDE_MODS`で意図した189件を指定します。設定はZIPのoverridesから導入されます。java21イメージは現在Core API keyを内蔵しているため、追加キーの作成は一律必須にしません。自前キーを使う場合はDocker secret等で渡します。自動取得が禁止されたMODは標準ツールの指示に従ってブラウザで該当file IDを取得します。独自Pythonダウンローダーはありません。
 
-TrueNASでは別のCustom Appで同等のread-only mountと新しい/data領域を使えます。この実行環境には既存composeがなく、既存service名・host pathは確認していません。したがって既存composeへの確定差分とは表示しません。もし従来の`TYPE=CURSEFORGE`/`CF_SERVER_MOD`方式なら、導入方式の変更は`TYPE=AUTO_CURSEFORGE`、`CF_MODPACK_ZIP`へのZIPパス指定、`CF_SLUG`、同梱Composeの除外・保持3変数の移植、およびZIPとdownloadsのread-only mount追加です。従来の`CF_SERVER_MOD`は外します。変数の正確な189 IDの列は生成したComposeからそのまま使い、手入力で作り直しません。既存のport・memory・world領域の移行を自動では行いません。既存サービスのパス・world・composeを上書きしません。EULAは本人が確認して明示設定します。このZIPをCurseForge AppにImportするだけでサーバーが起動するという案内はしません。実機動作は本人が確認する範囲で、Docker/Javaの起動試験は実施していません。
+TrueNASでは別のCustom Appで同等のread-only mountと新しい/data領域を使えます。既存composeの原本は本人が添付済みですが、この実行環境に取得済み原本はありませんでした。正本の正式転送はリンク更新後も取得を拒否され、原文を確認できていません。再添付が必要という判断にはせず、既存service名・host pathは未確認として保持しています。したがって既存composeへの確定差分とは表示しません。もし従来の`TYPE=CURSEFORGE`/`CF_SERVER_MOD`方式なら、導入方式の変更は`TYPE=AUTO_CURSEFORGE`、`CF_MODPACK_ZIP`へのZIPパス指定、`CF_SLUG`、同梱Composeの除外・保持3変数の移植、およびZIPとdownloadsのread-only mount追加です。従来の`CF_SERVER_MOD`は外します。変数の正確な189 IDの列は生成したComposeからそのまま使い、手入力で作り直しません。既存のport・memory・world領域の移行を自動では行いません。既存サービスのパス・world・composeを上書きしません。EULAは本人が確認して明示設定します。このZIPをCurseForge AppにImportするだけでサーバーが起動するという案内はしません。実機動作は本人が確認する範囲で、Docker/Javaの起動試験は実施していません。
+
+### client 199件からserver 189件を選ぶ仕組み
+
+App manifestのprojectID/fileID 199組を保持します。検証済み`exports/server.refs.json`は、その同じfile IDを持つ189組の部分集合です。差分10 project IDを`CF_EXCLUDE_MODS`へ渡し、189 project IDを`CF_FORCE_INCLUDE_MODS`へ渡します。`CF_EXCLUDE_INCLUDE_FILE`を空にしてイメージ同梱の別の除外規則は使いません。このため、参照の版を編集せずserver側の取得対象を指定できます。`SERVER-REFERENCES.json`自体を標準ツールのmanifestとして読ませる方式ではありません。標準ツールが読むのは`CF_MODPACK_ZIP`内の元manifestです。自動取得を許可しないファイルは標準ツールが不足を報告するため、指定された正確なfile IDをブラウザで取得してdownloadsへ置きます。実際の取得・起動結果は静的検査と区別します。
+
+### 新規導入と既存ワールド移行
+
+新規導入は別の空/data領域を用意し、manifestからloader・MODを取得、ZIPのoverridesを配置する手順です。既存ワールドを含まないので、最初に新規ワールドが生成されても既存ワールドの移行成功を意味しません。
+
+既存ワールドを移す場合は、実際の旧起動ディレクトリと`level-name`を確認し、停止したサーバーの整合性あるコピーまたはスナップショットを別の/data領域で使います。worldと運用設定はローカルで保持し、MOD・loaderの旧実行ファイルは持ち越さずmanifestから導入します。`server.properties`、whitelist等の運用設定はZIPに含めず、必要な値を移行先へ引き継ぎます。秘密設定はREADMEや配布ZIPへ載せません。overridesのconfigは導入時に適用されるため、既存の運用設定と配布設定の差分を確認します。
+
+[従来の`TYPE=CURSEFORGE`の公式仕様](https://docker-minecraft-server.readthedocs.io/en/latest/types-and-platforms/mod-platforms/curseforge/)では既定の`CF_BASE_DIR=/data/FeedTheBeast`等を作業場所にします。`AUTO_CURSEFORGE`は/dataへ導入するため、TYPEだけ変更して旧worldがそのまま見つかるとは扱いません。旧作業場所の正しいworldを新しい導入先に対応させる必要があります。今回、本番のcompose・world・設定には変更していません。実機確認は本人担当のままで、追加の実行承認や試験依頼はしません。
 
 [公式Server Packガイド](https://blog.curseforge.com/server-packs-tutorial/)に従い対応clientのAdditional Fileへ紐づける提出metadataを用意します。ただし公式資料にこの導入用レイアウトの受理保証はなく、manifest形式のServer Packを一律禁止する記述も確認できていません。Appで出力したclientと、自動生成したサーバー導入用ZIPを区別して表示します。審査結果は実際の提出後に確認する必要があります。
 
