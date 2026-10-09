@@ -7,7 +7,7 @@ on:
         type: string
         default: ''
   workflow_run:
-    workflows: [Manual client and server submission, Recover saved 0.0.2 server submission]
+    workflows: [Manual client and server submission]
     types: [completed]
 permissions:
   contents: read

@@ -246,7 +246,7 @@ def verify_existing_client(file_id, project_id, client):
     raw = get('mediafilez.forgecdn.net',
         f'/files/{file_id//1000}/{file_id%1000}/{quote(name,safe="")}', release.MAX_ZIP)
     release.need(hashlib.sha256(raw).hexdigest() == serverpack.sha(client),
-                 'existing CurseForge client bytes differ from verified App export')
+                 'existing CurseForge client bytes differ from verified client ZIP')
 
 
 def publish_github(client, server, version, client_sha, server_sha):
@@ -287,8 +287,7 @@ def publish_github(client, server, version, client_sha, server_sha):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--source', choices=('repository','app'), default='repository')
-    parser.add_argument('--client-receipt', type=Path)
+    parser.add_argument('--client-receipt', type=Path, required=True)
     parser.add_argument('--client', type=Path, required=True)
     parser.add_argument('--server', type=Path, required=True)
     parser.add_argument('--server-receipt', type=Path, required=True)
@@ -300,21 +299,14 @@ def main():
     parser.add_argument('--existing-client-file-id', type=int)
     args = parser.parse_args()
     try:
-        if args.source == 'repository':
-            import native_pack
-            inputs = native_pack.load_inputs()
-            meta, refs, overrides, source_sha = inputs
-            release.need(args.client_receipt is not None, 'repository build receipt required')
-            client_sha = native_pack.verify_client(args.client,
-                release.parse_json(args.client_receipt.read_bytes()), inputs)
-            policy = native_pack.policy(overrides)
-            configs = {'client': native_pack.runtime_config(meta, client_sha)}
-            lock = {'version': meta['version']}
-        else:
-            import verify_app_exports as app
-            lock, policy, refs, configs = app.load_inputs(Path('exports/exports.lock.json'),
-                Path('exports/policy.json'), Path('release.json'), require_assets=False)
-            client_sha = app.check_blob(app.read_blob(args.client), 'client', lock, policy, refs, configs['client'])
+        import native_pack
+        inputs = native_pack.load_inputs()
+        meta, refs, overrides, source_sha = inputs
+        client_sha = native_pack.verify_client(args.client,
+            release.parse_json(args.client_receipt.read_bytes()), inputs)
+        policy = native_pack.policy(overrides)
+        configs = {'client': native_pack.runtime_config(meta, client_sha)}
+        lock = {'version': meta['version']}
         server = release.parse_json(args.server_receipt.read_bytes())
         serverpack.verify_prepared(args.server, server, args.client,
             policy, lock['version'], refs)

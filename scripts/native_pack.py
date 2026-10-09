@@ -8,13 +8,12 @@ import hashlib
 import json
 from pathlib import Path
 import re
-import shutil
 import subprocess
 import tempfile
 import zipfile
 
 import release as r
-import verify_app_exports as app
+import pack_io as pack
 
 MODULE='v0.0.0-20260218225342-dfd8b68a4796'
 MODULE_SUM='h1:e6WSGD9fo7V8sbxGNOZiBHX6HnlBezOcQxVBZD6R0fM='
@@ -37,7 +36,7 @@ def load_inputs(root=Path('pack')):
         'invalid repository release metadata')
     r.need(isinstance(meta['version'],str) and re.fullmatch(r'[0-9]+\.[0-9]+\.[0-9]+(?:[-+][A-Za-z0-9.-]+)?',meta['version']),
         'invalid release version')
-    refs={k:app.reference_map(r.parse_json((root/f'{k}.refs.json').read_bytes())['files']) for k in app.KINDS}
+    refs={k:pack.reference_map(r.parse_json((root/f'{k}.refs.json').read_bytes())['files']) for k in pack.KINDS}
     r.need(set(refs['server'])<=set(refs['client']) and
         all(refs['client'][k]==v for k,v in refs['server'].items()),'server references must be an exact client subset')
     r.need(all(set(f)=={'projectID','fileID','required'} and f['required'] for rows in refs.values() for f in rows.values()),
@@ -53,10 +52,9 @@ def load_inputs(root=Path('pack')):
     if meta['version']==migration['migration_version']:
         r.need({n:digest(b) for n,b in overrides.items()}==migration['override_sha256'],
             'initial migration overrides differ from reviewed App source')
-        for kind in app.KINDS:
-            old=app.reference_map(r.parse_json((root.parent/f'exports/{kind}.refs.json').read_bytes())['files'])
-            clean={k:{f:v[f] for f in ('projectID','fileID','required')} for k,v in old.items()}
-            r.need(refs[kind]==clean,'initial migration reference difference')
+        for kind in pack.KINDS:
+            r.need(digest(json.dumps(refs[kind],sort_keys=True).encode())==migration['reference_sha256'][kind],
+                'initial migration reference difference')
     hashes={n:digest(b) for n,b in overrides.items()}
     source_sha=digest(json.dumps({'metadata':meta,'refs':refs,'overrides':hashes},sort_keys=True).encode())
     cfg=runtime_config(meta,'0'*64)
@@ -65,7 +63,7 @@ def load_inputs(root=Path('pack')):
 
 
 def runtime_config(meta,client_sha):
-    return {'project_id':meta['project_id'],'export_asset_id':None,'minecraft_version':meta['minecraft_version'],
+    return {'project_id':meta['project_id'],'minecraft_version':meta['minecraft_version'],
         'loader_id':meta['loader_id'],'game_version_names':meta['game_version_names'],
         'release_type':meta['release_type'],'display_name':f'{meta["name"]} {meta["version"]}',
         'reviewed_sha256':client_sha}
@@ -111,18 +109,18 @@ def canonical_zip(raw,output):
 
 def verify_client(client,receipt,inputs):
     meta,refs,overrides,source_sha=inputs
-    blob=app.read_blob(client); sha=digest(blob); cfg=runtime_config(meta,sha)
+    blob=pack.read_blob(client); sha=digest(blob); cfg=runtime_config(meta,sha)
     r.validate(blob,cfg) # CRC/bounds/path/private data/comment exceptions.
     with zipfile.ZipFile(client) as archive:
         manifest_blob=archive.read('manifest.json'); manifest=r.parse_json(manifest_blob)
-        actual=app.reference_map(manifest['files'])
+        actual=pack.reference_map(manifest['files'])
         r.need(actual==refs['client'],'generated MOD reference difference')
         r.need(manifest['name']==meta['name'] and manifest['version']==meta['version'] and
             manifest['author']==meta['author'],'generated identity differs')
         names={n for n in archive.namelist() if not n.endswith('/')}
         r.need(names==set(overrides)|{'manifest.json','modlist.html'},'unexpected generated entry')
         for n,expected in overrides.items():
-            r.need(not app.UNWANTED.search(n) and archive.read(n)==expected,'generated settings differ/unwanted state')
+            r.need(not pack.UNWANTED.search(n) and archive.read(n)==expected,'generated settings differ/unwanted state')
         r.need(receipt.get('schema_version')==1 and receipt.get('exporter')=='packwiz' and
             receipt.get('module_version')==MODULE and receipt.get('version')==meta['version'] and
             receipt.get('source_sha256')==source_sha and receipt.get('sha256')==sha and

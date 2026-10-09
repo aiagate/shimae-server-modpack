@@ -5,14 +5,24 @@ import json
 from pathlib import Path
 import sys
 import unittest
+import ssl
+import http.client
+import tempfile
 from unittest.mock import Mock, patch
 import zipfile
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts'))
 import release as r
+import publish_pair
 
 
 class ReleaseTests(unittest.TestCase):
+    def submit(self,blob,config,metadata,token,factory):
+        # Exercise the production streaming uploader, not an unused legacy POST.
+        temp=tempfile.TemporaryDirectory();self.addCleanup(temp.cleanup)
+        path=Path(temp.name)/'shimae-server-modpack.zip';path.write_bytes(blob)
+        return publish_pair.submit_file(path,config['project_id'],metadata,token,factory)
+
     def fixture(self, extra=None, change=None):
         manifest = {'manifestType': 'minecraftModpack', 'manifestVersion': 1,
                     'name': 'Synthetic test', 'version': 'test', 'author': 'tests',
@@ -29,7 +39,7 @@ class ReleaseTests(unittest.TestCase):
             for name, content in (extra or {}).items():
                 z.writestr(name, content)
         blob = out.getvalue()
-        config = {'project_id': 1, 'export_asset_id': None, 'minecraft_version': 'test-version',
+        config = {'project_id': 1,  'minecraft_version': 'test-version',
                   'loader_id': 'forge-test-loader',
                   'game_version_names': ['test-version', 'Forge', 'Client'],
                   'release_type': 'alpha', 'display_name': 'Synthetic test',
@@ -95,7 +105,7 @@ class ReleaseTests(unittest.TestCase):
                 with self.assertRaises(r.Invalid):
                     r.validate(b, c)
 
-    def test_empty_app_author_preserved_but_nonstring_author_rejected(self):
+    def test_empty_manifest_author_allowed_but_nonstring_author_rejected(self):
         b, c = self.fixture(change=lambda m: m.update(author=''))
         self.assertEqual(r.validate(b, c), c['reviewed_sha256'])
         for author in (None, 1, False):
@@ -201,14 +211,16 @@ class ReleaseTests(unittest.TestCase):
         conn = factory.return_value
         conn.getresponse.return_value.status = 200
         conn.getresponse.return_value.read.return_value = b'{"id":123}'
-        self.assertEqual(r.submit(b, c, r.metadata(c, 'test changes'), 'dummy-token', factory), 123)
+        self.assertEqual(self.submit(b, c, r.metadata(c, 'test changes'), 'dummy-token', factory), 123)
         method, path, body, headers = conn.request.call_args.args
         self.assertEqual(method, 'POST')
         self.assertEqual(path, '/api/projects/1/upload-file')
+        body=b''.join(body)
         self.assertIn(b, body)
         self.assertIn(b'filename="shimae-server-modpack.zip"', body)
         self.assertNotIn(b'dummy-token', body)
         self.assertEqual(headers['X-Api-Token'], 'dummy-token')
+        self.assertEqual(int(headers['Content-Length']),len(body))
         conn.request.assert_called_once()
         conn.close.assert_called_once()
 
@@ -220,14 +232,14 @@ class ReleaseTests(unittest.TestCase):
             conn.getresponse.return_value.status = status
             conn.getresponse.return_value.read.return_value = b'{}'
             with self.assertRaises(r.Invalid):
-                r.submit(b, c, {}, 'dummy-token', factory)
+                self.submit(b, c, {}, 'dummy-token', factory)
             conn.request.assert_called_once()
 
     def test_missing_token_no_network(self):
         b, c = self.fixture()
         factory = Mock()
         with self.assertRaises(r.Invalid):
-            r.submit(b, c, {}, '', factory)
+            self.submit(b, c, {}, '', factory)
         factory.assert_not_called()
 
     def test_http_diagnostics_record_only_whitelisted_projection_of_server_text(self):
@@ -241,7 +253,7 @@ class ReleaseTests(unittest.TestCase):
             response.read.return_value = b'X-Api-Token: dummy-token user@example.invalid'
             conn.close.side_effect = OSError('dummy-token')
             with self.subTest(status=status), self.assertRaises(r.SubmissionError) as error:
-                r.submit(b, c, {}, 'dummy-token', factory)
+                self.submit(b, c, {}, 'dummy-token', factory)
             self.assertEqual(error.exception.diagnostics, {
                 'category': 'http_non_success', 'phase': 'response_headers',
                 'http_status': status, 'response_body_recorded': False,
@@ -256,10 +268,10 @@ class ReleaseTests(unittest.TestCase):
     def test_transport_categories_are_safe_and_preserve_known_http_status(self):
         b, c = self.fixture()
         for phase, failure, category, status in (
-                ('request', r.ssl.SSLError('dummy-token'), 'tls_error', None),
+                ('request', ssl.SSLError('dummy-token'), 'tls_error', None),
                 ('getresponse', TimeoutError('user@example.invalid'), 'timeout', None),
                 ('request', OSError('dummy-token'), 'connection_error', None),
-                ('getresponse', r.http.client.BadStatusLine('dummy-token'), 'http_protocol_error', None),
+                ('getresponse', http.client.BadStatusLine('dummy-token'), 'http_protocol_error', None),
                 ('read', TimeoutError('dummy-token'), 'timeout', 200)):
             factory = Mock()
             conn = factory.return_value
@@ -268,7 +280,7 @@ class ReleaseTests(unittest.TestCase):
             target = response.read if phase == 'read' else getattr(conn, phase)
             target.side_effect = failure
             with self.subTest(phase=phase, category=category), self.assertRaises(r.SubmissionError) as error:
-                r.submit(b, c, {}, 'dummy-token', factory)
+                self.submit(b, c, {}, 'dummy-token', factory)
             self.assertEqual(error.exception.diagnostics['category'], category)
             self.assertEqual(error.exception.diagnostics['http_status'], status)
             self.assertNotIn('dummy-token', str(error.exception))
@@ -277,7 +289,7 @@ class ReleaseTests(unittest.TestCase):
             conn.close.assert_called_once()
         factory = Mock(side_effect=OSError('dummy-token'))
         with self.assertRaises(r.SubmissionError) as error:
-            r.submit(b, c, {}, 'dummy-token', factory)
+            self.submit(b, c, {}, 'dummy-token', factory)
         self.assertEqual(error.exception.diagnostics['phase'], 'connection_setup')
 
     def test_response_diagnostics_keep_status_without_body_content(self):
@@ -292,47 +304,13 @@ class ReleaseTests(unittest.TestCase):
             response.status = 201
             response.read.return_value = body
             with self.subTest(category=category), self.assertRaises(r.SubmissionError) as error:
-                r.submit(b, c, {}, 'dummy-token', factory)
+                self.submit(b, c, {}, 'dummy-token', factory)
             self.assertEqual(error.exception.diagnostics['category'], category)
             self.assertEqual(error.exception.diagnostics['http_status'], 201)
             self.assertNotIn('dummy-token', json.dumps(error.exception.diagnostics))
             response.read.assert_called_once_with(65537)
             conn.request.assert_called_once()
 
-    def test_public_receipt_and_log_include_only_safe_failure_diagnostics(self):
-        import tempfile
-        from contextlib import redirect_stderr, redirect_stdout
-        b, c = self.fixture()
-        with tempfile.TemporaryDirectory() as d:
-            root = Path(d)
-            (root / 'pack.zip').write_bytes(b)
-            (root / 'release.json').write_text(json.dumps(c))
-            (root / 'changes.md').write_text('test changes')
-            receipt = root / 'receipt.json'
-            args = ['release.py', '--zip', str(root / 'pack.zip'), '--config',
-                    str(root / 'release.json'), '--changelog', str(root / 'changes.md'),
-                    '--receipt', str(receipt), '--commit', 'a' * 40, '--submit']
-            factory = Mock()
-            response = factory.return_value.getresponse.return_value
-            response.status = 403
-            response.read.return_value = b'dummy-token user@example.invalid'
-            invoke = r.submit
-            logs = io.StringIO()
-            with patch.object(sys, 'argv', args), \
-                    patch.dict(r.os.environ, {'CURSEFORGE_API_TOKEN': 'dummy-token'}), \
-                    patch.object(r, 'submit', side_effect=lambda *a: invoke(*a, factory)), \
-                    redirect_stdout(logs), redirect_stderr(logs):
-                self.assertEqual(r.main(), 1)
-            data = json.loads(receipt.read_text())
-            self.assertEqual(data['status'], 'submission_unconfirmed')
-            self.assertIsNone(data['file_id'])
-            self.assertEqual(data['error']['http_status'], 403)
-            self.assertEqual(data['error']['category'], 'http_non_success')
-            for forbidden in ('dummy-token', 'user@example.invalid', 'X-Api-Token'):
-                self.assertNotIn(forbidden, logs.getvalue() + receipt.read_text())
-            self.assertIn('HTTP 403', logs.getvalue())
-            response.read.assert_called_once_with(65537)
-            factory.return_value.request.assert_called_once()
 
     def test_validation_projection_drops_free_text_unknown_fields_and_codes(self):
         raw = json.dumps({'errorCode': 400, 'errorMessage': 'dummy-token user@example.invalid',
@@ -367,7 +345,7 @@ class ReleaseTests(unittest.TestCase):
     def test_error_transport_passes_token_to_diagnostic_redaction(self):
         b,c=self.fixture();factory=Mock();response=factory.return_value.getresponse.return_value
         response.status=400;response.read.return_value=b'{"message":"Invalid token approved"}'
-        with self.assertRaises(r.SubmissionError) as err:r.submit(b,c,{},'approved',factory)
+        with self.assertRaises(r.SubmissionError) as err:self.submit(b,c,{},'approved',factory)
         self.assertNotIn('approved',json.dumps(err.exception.diagnostics))
         self.assertIn('Invalid token',json.dumps(err.exception.diagnostics))
 
@@ -378,7 +356,7 @@ class ReleaseTests(unittest.TestCase):
         conn.getresponse.return_value.status = 400
         conn.getresponse.return_value.read.side_effect = TimeoutError('dummy-token')
         with self.assertRaises(r.SubmissionError) as error:
-            r.submit(b, c, {}, 'dummy-token', factory)
+            self.submit(b, c, {}, 'dummy-token', factory)
         self.assertEqual(error.exception.diagnostics['http_status'], 400)
         self.assertEqual(error.exception.diagnostics['category'], 'http_non_success')
         self.assertEqual(error.exception.diagnostics['response_summary']['response_format'], 'read_failed')
@@ -395,19 +373,6 @@ class ReleaseTests(unittest.TestCase):
         for forbidden in ('dummy-token', 'user@example.invalid', 'private response', 'ErrorMessage'):
             self.assertNotIn(forbidden, json.dumps(result))
 
-    def test_dry_run_no_network(self):
-        import tempfile
-        b, c = self.fixture()
-        with tempfile.TemporaryDirectory() as d:
-            root = Path(d)
-            (root / 'pack.zip').write_bytes(b)
-            (root / 'release.json').write_text(json.dumps(c))
-            (root / 'changes.md').write_text('test changes')
-            args = ['release.py', '--zip', str(root / 'pack.zip'), '--config',
-                    str(root / 'release.json'), '--changelog', str(root / 'changes.md')]
-            with patch.object(sys, 'argv', args), patch.object(r, 'submit') as send:
-                self.assertEqual(r.main(), 0)
-                send.assert_not_called()
 
     def test_timeout_and_invalid_responses_never_retry(self):
         b, c = self.fixture()
@@ -421,61 +386,11 @@ class ReleaseTests(unittest.TestCase):
             else:
                 conn.getresponse.return_value.read.return_value = response
             with self.subTest(response=response), self.assertRaises(r.Invalid):
-                r.submit(b, c, {}, 'dummy-token', factory)
+                self.submit(b, c, {}, 'dummy-token', factory)
             conn.request.assert_called_once()
             conn.close.assert_called_once()
 
-    def test_public_receipt_records_dry_run_success_and_uncertainty(self):
-        import tempfile
-        b, c = self.fixture()
-        c['export_asset_id'] = 123
-        for submit, fail, status, file_id in ((False, False, 'validated', None),
-                                             (True, False, 'submitted', 123),
-                                             (True, True, 'submission_unconfirmed', None)):
-            with tempfile.TemporaryDirectory() as d:
-                root = Path(d)
-                (root / 'pack.zip').write_bytes(b)
-                (root / 'release.json').write_text(json.dumps(c))
-                (root / 'changes.md').write_text('test changes')
-                receipt = root / 'receipt.json'
-                args = ['release.py', '--zip', str(root / 'pack.zip'), '--config',
-                        str(root / 'release.json'), '--changelog', str(root / 'changes.md'),
-                        '--receipt', str(receipt), '--commit', 'a' * 40]
-                if submit:
-                    args.append('--submit')
-                with patch.object(sys, 'argv', args), \
-                        patch.dict(r.os.environ, {'CURSEFORGE_API_TOKEN': 'dummy-token'}), \
-                        patch.object(r, 'submit', return_value=123,
-                                     side_effect=r.Invalid('dummy failure') if fail else None) as send:
-                    self.assertEqual(r.main(), 1 if fail else 0)
-                    if submit:
-                        self.assertEqual(send.call_args.args[0], b)
-                        send.assert_called_once()
-                    else:
-                        send.assert_not_called()
-                self.assertEqual(json.loads(receipt.read_text()), {
-                    'commit': 'a' * 40, 'version': 'test',
-                    'zip_sha256': hashlib.sha256(b).hexdigest(), 'project_id': 1,
-                    'export_asset_id': 123, 'status': status, 'file_id': file_id})
-                self.assertNotIn('dummy-token', receipt.read_text())
 
-    def test_receipt_failure_stops_before_network(self):
-        import tempfile
-        b, c = self.fixture()
-        with tempfile.TemporaryDirectory() as d:
-            root = Path(d)
-            (root / 'pack.zip').write_bytes(b)
-            (root / 'release.json').write_text(json.dumps(c))
-            (root / 'changes.md').write_text('test changes')
-            receipt = root / 'receipt.json'
-            receipt.write_text('existing')
-            args = ['release.py', '--zip', str(root / 'pack.zip'), '--config',
-                    str(root / 'release.json'), '--changelog', str(root / 'changes.md'),
-                    '--receipt', str(receipt), '--commit', 'a' * 40, '--submit']
-            with patch.object(sys, 'argv', args), patch.object(r, 'submit') as send:
-                self.assertEqual(r.main(), 1)
-                send.assert_not_called()
-            self.assertEqual(receipt.read_text(), 'existing')
 
     def test_manifest_and_modlist_secrets_rejected_without_disclosure(self):
         changes = [lambda m: m.update(api_key='dummy-review-secret'),
@@ -518,23 +433,6 @@ class ReleaseTests(unittest.TestCase):
         with self.assertRaisesRegex(r.Invalid, 'overrides directory missing'):
             r.validate(b, c)
 
-    def test_changed_artifact_fails_before_post_or_receipt(self):
-        import tempfile
-        b, c = self.fixture()
-        c['export_asset_id'] = 123
-        with tempfile.TemporaryDirectory() as d:
-            root = Path(d)
-            (root / 'pack.zip').write_bytes(b + b'changed artifact')
-            (root / 'release.json').write_text(json.dumps(c))
-            (root / 'changes.md').write_text('test changes')
-            receipt = root / 'receipt.json'
-            args = ['release.py', '--zip', str(root / 'pack.zip'), '--config',
-                    str(root / 'release.json'), '--changelog', str(root / 'changes.md'),
-                    '--receipt', str(receipt), '--commit', 'a' * 40, '--submit']
-            with patch.object(sys, 'argv', args), patch.object(r, 'submit') as send:
-                self.assertEqual(r.main(), 1)
-                send.assert_not_called()
-            self.assertFalse(receipt.exists())
 
 
 if __name__ == '__main__':

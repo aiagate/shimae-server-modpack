@@ -3,15 +3,12 @@
 The standard itzg AUTO_CURSEFORGE installer fetches pinned MODs at deployment.
 This ZIP is not a preassembled, immediately executable Java server.
 """
-import argparse
 import hashlib
 import json
 import re
-from pathlib import Path
 import zipfile
 
 import release
-import verify_app_exports as app
 
 
 def sha(path):
@@ -29,8 +26,8 @@ def blobs(client, policy, refs, version):
                  'unsafe release version')
     with zipfile.ZipFile(client) as archive:
         manifest = archive.read('manifest.json')
-        release.need(release.parse_json(manifest)['version'] == version, 'App version mismatch')
-        # Use existing reviewed server refs/settings; never manufacture an App export.
+        release.need(release.parse_json(manifest)['version'] == version, 'client manifest version mismatch')
+        # Use the reviewed server refs/settings.
         paths = {n:h for n,h in policy['override_sha256']['client'].items()
                  if n.startswith('overrides/config/') and
                  n.removeprefix('overrides/config/') not in EXCLUDED_CONFIGS}
@@ -133,12 +130,9 @@ def write_zip(output, files):
             archive.writestr(info, content)
 
 
-def verify_prepared(server, receipt, client, policy, version, refs=None):
+def verify_prepared(server, receipt, client, policy, version, refs):
     release.need(server.is_file() and not server.is_symlink() and
         server.stat().st_size <= release.MAX_ZIP, 'invalid server setup file/size')
-    if refs is None:
-        refs={k:app.reference_map(release.parse_json(Path(f'exports/{k}.refs.json').read_bytes())['files'])
-              for k in app.KINDS}
     expected=blobs(client,policy,refs,version)
     with zipfile.ZipFile(server) as archive:
         release.need(len(archive.infolist()) == len(expected) and
@@ -152,32 +146,3 @@ def verify_prepared(server, receipt, client, policy, version, refs=None):
         receipt.get('client_sha256')==sha(client) and receipt.get('sha256')==sha(server) and
         receipt.get('size_bytes')==server.stat().st_size and receipt.get('filename')==server.name and
         receipt.get('format')=='manifest-installer-input', 'server receipt identity differs')
-
-
-def main():
-    parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--client',type=Path,required=True)
-    parser.add_argument('--output',type=Path,required=True)
-    parser.add_argument('--receipt',type=Path,required=True)
-    args=parser.parse_args()
-    try:
-        lock,policy,refs,configs=app.load_inputs(Path('exports/exports.lock.json'),
-            Path('exports/policy.json'),Path('release.json'),require_assets=False)
-        digest=app.check_blob(app.read_blob(args.client),'client',lock,policy,refs,configs['client'])
-        release.need(not args.receipt.exists() and args.output.name==
-            f'shimae-server-modpack-{lock["version"]}-serverpack.zip', 'use new canonical output/receipt')
-        write_zip(args.output,blobs(args.client,policy,refs,lock['version']))
-        record=dict(schema_version=1,version=lock['version'],client_sha256=digest,
-            sha256=sha(args.output),size_bytes=args.output.stat().st_size,filename=args.output.name,
-            format='manifest-installer-input',runtime_verified=False)
-        verify_prepared(args.output,record,args.client,policy,lock['version'],refs)
-        with args.receipt.open('x') as handle: json.dump(record,handle,indent=2); handle.write('\n')
-        print(json.dumps(record,indent=2))
-    except (release.Invalid,OSError,ValueError,KeyError,zipfile.BadZipFile) as exc:
-        print('STOP: server setup validation failed:',type(exc).__name__)
-        return 1
-    return 0
-
-
-if __name__=='__main__':
-    raise SystemExit(main())

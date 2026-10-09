@@ -16,17 +16,15 @@ class NativePackTests(unittest.TestCase):
     def setUp(self):
         self.tmp=tempfile.TemporaryDirectory();self.addCleanup(self.tmp.cleanup)
         self.root=Path(self.tmp.name)/'pack';(self.root/'overrides/config').mkdir(parents=True)
-        (self.root.parent/'exports').mkdir()
         self.config=b'enabled = true\n';(self.root/'overrides/config/example.toml').write_bytes(self.config)
         self.meta={'schema_version':1,'version':'0.0.2','name':'Synthetic','author':'Tests',
             'minecraft_version':'1.21.1','loader_id':'neoforge-21.1.243','project_id':1,
             'game_version_names':['1.21.1','NeoForge','Client'],'release_type':'alpha'}
         self.refs=[{'projectID':1,'fileID':100,'required':True},{'projectID':2,'fileID':200,'required':True}]
         for kind,rows in [('client',self.refs),('server',self.refs[:1])]:
-            for base in [self.root,self.root.parent/'exports']:
-                (base/f'{kind}.refs.json').write_text(json.dumps({'files':rows}))
+            (self.root/f'{kind}.refs.json').write_text(json.dumps({'files':rows}))
         self.migration={'schema_version':1,'module_version':n.MODULE,'go_version':n.GO_VERSION,
-            'migration_version':'0.0.2','override_sha256':{'overrides/config/example.toml':n.digest(self.config)}}
+            'migration_version':'0.0.2','reference_sha256':{kind:n.digest(json.dumps({f['projectID']:f for f in rows},sort_keys=True).encode()) for kind,rows in [('client',self.refs),('server',self.refs[:1])]},'override_sha256':{'overrides/config/example.toml':n.digest(self.config)}}
         self.save()
     def save(self):
         (self.root/'release.json').write_text(json.dumps(self.meta))
@@ -61,6 +59,14 @@ class NativePackTests(unittest.TestCase):
         with self.assertRaises(release.Invalid):n.load_inputs(self.root)
     def test_first_migration_changed_reference_rejected(self):
         (self.root/'client.refs.json').write_text(json.dumps({'files':[dict(self.refs[0],fileID=999),self.refs[1]]}))
+        with self.assertRaises(release.Invalid):n.load_inputs(self.root)
+    def test_initial_migration_client_only_reference_change_rejected(self):
+        rows=copy.deepcopy(self.refs);rows[1]['fileID']=999
+        (self.root/'client.refs.json').write_text(json.dumps({'files':rows}))
+        with self.assertRaises(release.Invalid):n.load_inputs(self.root)
+    def test_duplicate_reference_rejected_in_future_source(self):
+        self.meta['version']='0.0.3';self.save()
+        (self.root/'client.refs.json').write_text(json.dumps({'files':self.refs+[self.refs[0]]}))
         with self.assertRaises(release.Invalid):n.load_inputs(self.root)
     def test_future_update_uses_repository_source_not_app_gate(self):
         self.meta['version']='0.0.3';self.save()

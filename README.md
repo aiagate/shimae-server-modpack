@@ -10,7 +10,7 @@ Minecraft 1.21.1 / NeoForge 21.1.243。リポジトリの固定MOD参照と設�
 - `pack/overrides/`：配布する設定・ライセンス文書。world、接続先、パスワード、履歴を入れません。
 - `CHANGELOG.md`：今回の変更、導入方式、動作確認の範囲。
 
-0.0.2への移行ではclient199参照、server189参照、client override320ファイル（設定318＋ライセンス2）、server設定309を保持しています。App由来0.0.1の固定参照・設定SHAと完全照合します。旧`exports/**`とルートの`release.json`は移行証跡と過去の検査用で、通常ビルドの入力ではありません。
+0.0.2への移行ではclient199参照、server189参照、client override320ファイル（設定318＋ライセンス2）、server設定309を保持しています。App由来0.0.1の固定参照・設定SHAと完全照合します。旧Appの原本参照・設定ポリシー・準備記録は[`history/0.0.1-app/`](history/0.0.1-app/)に保持し、通常ビルドはそこを参照しません。初回移行の参照・設定SHAは`pack/migration.json`で照合します。
 
 ## 公開する操作
 
@@ -40,7 +40,7 @@ clientにはMOD/Shaderを199固定IDで参照するmanifestと設定を入れ、
 
 このServer Packは導入用ZIPで、単独でJavaサーバーが起動するバイナリセットではありません。新規導入はZIPを残して新しい空フォルダへ展開し、同梱Composeを使用します。EULAは本人が確認して明示します。TrueNASは同等のCustom Appとmountを使います。
 
-既存world移行は別作業です。旧起動場所とlevel-nameを確認し、停止したworldの整合性あるコピー等を新しい/dataで使います。旧`CURSEFORGE`は`CF_BASE_DIR`（既定/data/FeedTheBeast）で起動する場合があり、TYPE変更だけではworld移行できません。運用設定・秘密値はローカルで保持します。添付済みTrueNAS composeの正式取得は失敗しているため、本番構成の確定差分とはしません。本番変更・実機起動試験は行っていません。
+既存world移行は別作業です。旧起動場所とlevel-nameを確認し、停止したworldの整合性あるコピー等を新しい/dataで使います。旧`CURSEFORGE`は`CF_BASE_DIR`（既定/data/FeedTheBeast）で起動する場合があり、TYPE変更だけではworld移行できません。運用設定・秘密値はローカルで保持します。本番変更・実機起動試験は行っていません。
 
 ## 認証と審査の範囲
 
@@ -48,20 +48,22 @@ clientにはMOD/Shaderを199固定IDで参照するmanifestと設定を入れ、
 
 [作者Upload token](https://authors.curseforge.com/#/settings/api-tokens)を[GitHub curseforge Environment](https://github.com/aiagate/shimae-server-modpack/settings/environments/23755335004/edit)の`CURSEFORGE_API_TOKEN`へ本人が設定済みです。`X-Api-Token`を使い、Core APIのキーとは区別します。
 
-[公式審査規約](https://support.curseforge.com/support/solutions/articles/9000197279-project-and-modpack-moderation-policies)にはAppでの作成・App生成manifestの編集禁止が書かれています。一方、[TerraFirmaGregのPakku workflow](https://github.com/TerraFirmaGreg-Team/Modpack-Modern/blob/305ea8e4a54025b0b46fdc4cfc27ff96611dc3c3/.github/workflows/build.yml)と[公開ファイル](https://www.curseforge.com/minecraft/modpacks/terrafirmagreg-modern/files/8037324)、[Trashlandsのpackwiz workflow](https://github.com/Flatts3000/trashlands/blob/6e8748be14363ff03ecfdb493ee061ea9f605094/.github/workflows/release.yml)には標準toolでの生成・API提出の実績があります。他projectの実績は、本projectや軽量Server Packの審査保証ではありません。今回の方式はrepository-owned source/packwiz outputと明示し、App生成という虚偽の出所にはしません。手動App Exportが唯一の方法とは扱いません。
+[公式審査規約](https://support.curseforge.com/support/solutions/articles/9000197279-project-and-modpack-moderation-policies)のApp形式・manifest編集制限を踏まえ、標準packwizで新規生成します。App出力を加工して出所を偽装しません。本packの0.0.2はこの方式で公開済みですが、次版や動作の保証とは分けて扱います。
 
 MODの実機動作、全依存グラフ、審査受理は静的検査の範囲外です。自作部分はMIT、第三者のMOD/Shader/設定コメント等の権利は各作者のままです。LICENSEとLICENSE-SCOPE.txtを参照してください。
 
-## 0.0.2 server提出の回復
-
-最初のActions run `37883897099`はclient `9104708`を受け付け、serverはHTTP400/error1013で停止しました。作者画面で親のApproved/公開と追加server未登録を確認しています。原因は未確定です。任意のchild版名指定を省き、公開APIライブラリと同様に親の版情報を継承します。
-
-専用 **Recover saved 0.0.2 server submission** は旧Releaseの正確な両ZIP、元runのreceipt、受付済み親の公開状態/CDN全SHAを照合します。clientを再投稿せず、元server claimも残し、別の一度限りrecovery claimをPOST前に保存します。受付IDは元server resultへ記録します。受付不明の回復claimがある場合は再実行しても停止し、勝手に削除しません。既定はsubmit=falseです。この回復は0.0.2の失敗に限定し、通常の版更新用ではありません。
-
 ## 公開後の検証
 
-`verify-publication.yml`は、実提出workflowまたはserver回復workflowの成功後にmainの読み取り権限だけで動きます。Upload tokenもCore API keyも使わず、Releaseの受付journalとZIP digest、公開Web APIのApproved、公開追加ファイルの親ID、Server Pack区分、両CDNの全SHAを検証します。公開Web APIの応答形式が変わった場合も完了と推測しません。
+`verify-publication.yml`は、実提出workflowの成功後にmainの読み取り権限だけで動きます。Upload tokenもCore API keyも使わず、Releaseの受付journalとZIP digest、公開Web APIのApproved、公開追加ファイルの親ID、Server Pack区分、両CDNの全SHAを検証します。公開Web APIの応答形式が変わった場合も完了と推測しません。
 
 審査待ちは最大10分読み取りで待ちます。その時点でまだ審査中ならreceiptは `publication_complete: false` の待機状態です。workflowが成功しただけでは公開完了と判断しません。審査後に区分を設定して専用workflowを手動起動し、完了receiptを確認します。Approvedでも区分未設定、親ID不一致、SHA不一致、型の判断が曖昧なら検証を失敗させます。`submit=false`だけの通常preflightは自動検証を起動しません。
 
 0.0.2はclient `9104708` / server `9104783`がApprovedで、同じserver受付済みファイルのServer Pack区分を作者画面で設定しました。公開APIの区分・親子関係・CDN全SHAも一致しています。元のZIPと公開済み0.0.1は保持しています。
+
+## 開発と保全
+
+ローカル検証は `python3 -m unittest discover -s tests -v`。固定packwizを用意し、`python3 scripts/native_pack.py --output <新しい出力先> --packwiz <binary>`で両ZIPを生成します。CIは同じビルドを独立に2回実行し、参照と設定の内容一致を確認してレビュー用artifactを保存します。実提出を伴わないCIにUpload tokenは渡しません。
+
+[`history/0.0.2-submission.md`](history/0.0.2-submission.md)に公開済み版の受付ID・SHA・回復経緯を記録しています。完了した0.0.2専用の回復操作は退役しました。現行の`server_only`、公開済み親のバイト照合、immutable claim/result、失敗receiptは保持しています。受付不明のclaimがあれば再送せず、作者画面とreceiptを確認します。
+
+Gitには配布ZIP・MOD JAR・私的な運用資料を入れません。公開済みRelease/ZIP、App原本、監査receipt、ローカル運用資料はcleanupの対象外です。

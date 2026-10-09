@@ -1,17 +1,12 @@
-"""Validate a reviewed App-origin ZIP; optionally submit the same bytes."""
-import argparse
+"""Shared manifest safety checks, upload metadata and redacted API diagnostics."""
 import hashlib
 import html
 import http.client
 import io
 import json
-import os
 from pathlib import Path
 import re
-import ssl
 import stat
-import sys
-import uuid
 import zipfile
 
 MAX_ZIP = 90 * 1024 * 1024  # Repository policy, not a CurseForge API limit.
@@ -74,9 +69,7 @@ def config_check(config):
     need(isinstance(config, dict), 'config must be an object')
     need(set(config) == {'project_id', 'minecraft_version', 'loader_id',
                         'game_version_names', 'release_type', 'display_name',
-                        'reviewed_sha256', 'export_asset_id'}, 'config keys do not match release.example.json')
-    need(config['export_asset_id'] is None or positive(config['export_asset_id']),
-         'export_asset_id must be null for local checks or a positive integer')
+                        'reviewed_sha256'}, 'invalid runtime validation config keys')
     need(positive(config['project_id']), 'project_id is not configured')
     for key in ('minecraft_version', 'loader_id', 'display_name'):
         need(isinstance(config[key], str) and config[key].strip() and
@@ -94,7 +87,7 @@ def config_check(config):
          'game_version_names must match Minecraft version, loader and Client')
     need(isinstance(config['reviewed_sha256'], str) and
          re.fullmatch('[0-9a-f]{64}', config['reviewed_sha256']),
-         'reviewed_sha256 must identify the manually reviewed export')
+         'reviewed_sha256 must identify the verified client ZIP')
 
 
 def checked_override(content, name):
@@ -364,126 +357,3 @@ def read_error_summary(response, secrets=()):
         return safe_api_error(response.read(65537), secrets)
     except (OSError, http.client.HTTPException):
         return {'response_format': 'read_failed', 'validation_fields': [], 'validation_codes': []}
-
-
-def submit(blob, config, meta, token, connection_factory=http.client.HTTPSConnection):
-    token_check(token)
-    # Fixed host, no redirects, proxies, query credentials or retry loop.
-    boundary = 'cf-' + uuid.uuid4().hex
-    body = (f'--{boundary}\r\nContent-Disposition: form-data; name="metadata"\r\n'
-            'Content-Type: application/json\r\n\r\n').encode() + json.dumps(meta).encode()
-    body += (f'\r\n--{boundary}\r\nContent-Disposition: form-data; name="file"; '
-             'filename="shimae-server-modpack.zip"\r\nContent-Type: application/zip\r\n\r\n').encode()
-    body += blob + f'\r\n--{boundary}--\r\n'.encode()
-    conn = None
-    phase = 'connection_setup'
-    status = None
-    try:
-        conn = connection_factory(HOST, timeout=120)
-        phase = 'request'
-        conn.request('POST', f"/api/projects/{config['project_id']}/upload-file", body,
-                     {'X-Api-Token': token, 'Content-Type': f'multipart/form-data; boundary={boundary}'})
-        phase = 'response_headers'
-        response = conn.getresponse()
-        if type(response.status) is not int or not 100 <= response.status <= 599:
-            raise SubmissionError('invalid_http_status', phase)
-        status = response.status
-        if not 200 <= status < 300:
-            # Retain known fields/codes and redacted protocol words only.
-            # Never retain raw bodies, headers or reflected credential values.
-            summary = read_error_summary(response, (token,))
-            raise SubmissionError('http_non_success', phase, status, summary)
-        phase = 'response_body'
-        raw = response.read(65537)
-        if len(raw) > 65536:
-            raise SubmissionError('response_too_large', phase, status)
-        try:
-            result = parse_json(raw)
-        except (ValueError, UnicodeError):
-            raise SubmissionError('invalid_json_response', phase, status) from None
-        if not isinstance(result, dict) or not positive(result.get('id')):
-            raise SubmissionError('missing_valid_file_id', phase, status)
-        return result['id']
-    except SubmissionError:
-        raise
-    except ssl.SSLError:
-        raise SubmissionError('tls_error', phase, status) from None
-    except TimeoutError:
-        raise SubmissionError('timeout', phase, status) from None
-    except OSError:
-        raise SubmissionError('connection_error', phase, status) from None
-    except http.client.HTTPException:
-        raise SubmissionError('http_protocol_error', phase, status) from None
-    finally:
-        if conn is not None:
-            try:
-                conn.close()
-            except (OSError, http.client.HTTPException):
-                # A close error must not hide the response/transport diagnosis.
-                pass
-
-
-def main():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--zip', required=True)
-    parser.add_argument('--config', default='release.json')
-    parser.add_argument('--changelog', default='CHANGELOG.md')
-    parser.add_argument('--submit', action='store_true', help='actually submit; default is offline dry-run')
-    parser.add_argument('--receipt', type=Path, help='write a public JSON submission receipt')
-    parser.add_argument('--commit', help='source commit SHA to record with --receipt')
-    args = parser.parse_args()
-    receipt = None
-    try:
-        path = Path(args.zip)
-        need(path.suffix == '.zip' and not path.is_symlink(), 'use a regular export ZIP')
-        with path.open('rb') as handle:
-            blob = handle.read(MAX_ZIP + 1)
-        config = parse_json(Path(args.config).read_text(encoding='utf-8'))
-        digest = validate(blob, config)
-        meta = metadata(config, Path(args.changelog).read_text(encoding='utf-8'))
-        if args.receipt:
-            need(isinstance(args.commit, str) and
-                 re.fullmatch(r'[0-9a-f]{40}', args.commit), 'receipt needs a full source commit SHA')
-            with zipfile.ZipFile(io.BytesIO(blob)) as archive:
-                manifest = parse_json(archive.read('manifest.json'))
-            receipt = {'commit': args.commit, 'version': manifest['version'],
-                       'zip_sha256': digest, 'project_id': config['project_id'],
-                       'export_asset_id': config['export_asset_id'],
-                       'status': 'validated', 'file_id': None}
-            # Fail before any network request if the receipt cannot be created.
-            with args.receipt.open('x', encoding='utf-8') as handle:
-                json.dump(receipt, handle, indent=2)
-                handle.write('\n')
-        print('Validated SHA256:', digest)
-        if args.submit:
-            token = os.environ.get('CURSEFORGE_API_TOKEN', '')
-            token_check(token)
-            # Preserve uncertainty on timeout, malformed replies or runner interruption.
-            if receipt is not None:
-                receipt['status'] = 'submission_unconfirmed'
-                args.receipt.write_text(json.dumps(receipt, indent=2) + '\n', encoding='utf-8')
-            file_id = submit(blob, config, meta, token)
-            print(f'API accepted file ID {file_id}; moderation is pending, manual publication required.')
-            if receipt is not None:
-                receipt.update(status='submitted', file_id=file_id)
-                args.receipt.write_text(json.dumps(receipt, indent=2) + '\n', encoding='utf-8')
-        else:
-            print('DRY RUN: no network request; no file submitted.')
-        return 0
-    except SubmissionError as error:
-        if receipt is not None:
-            receipt['error'] = error.diagnostics
-            try:
-                args.receipt.write_text(json.dumps(receipt, indent=2) + '\n', encoding='utf-8')
-            except OSError:
-                print('STOP: could not persist submission diagnostic receipt.', file=sys.stderr)
-        print('STOP:', error, file=sys.stderr)
-    except Invalid as error:
-        print('STOP:', error, file=sys.stderr)
-    except (OSError, ValueError, KeyError, TypeError, zipfile.BadZipFile, RuntimeError, NotImplementedError):
-        print('STOP: invalid/unreadable input; no successful submission confirmed.', file=sys.stderr)
-    return 1
-
-
-if __name__ == '__main__':
-    sys.exit(main())
