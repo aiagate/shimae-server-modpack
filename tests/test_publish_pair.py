@@ -100,7 +100,7 @@ class AuthenticationPreflightTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp); source=root/'server.json'; source.write_text(json.dumps({'sha256':'b'*64}))
             receipt=root/'receipt.json'
-            args=['publish_pair.py','--client',str(root/'client.zip'),'--server',str(root/'server.zip'),
+            args=['publish_pair.py','--source','app','--client',str(root/'client.zip'),'--server',str(root/'server.zip'),
                 '--server-receipt',str(source),'--receipt',str(receipt),'--state',str(root/'absent.json'),'--submit']
             config=dict(CONFIG)
             with patch.object(sys,'argv',args), patch.dict('os.environ',{
@@ -120,7 +120,7 @@ class VersionVariantPublicationTests(unittest.TestCase):
     def test_documented_string_metadata_passes_audit_with_multiple_type_ids(self):
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp); source=root/'server.json'; source.write_text(json.dumps({'sha256':'b'*64}))
-            args=['publish_pair.py','--client',str(root/'client.zip'),'--server',str(root/'server.zip'),
+            args=['publish_pair.py','--source','app','--client',str(root/'client.zip'),'--server',str(root/'server.zip'),
                 '--server-receipt',str(source),'--receipt',str(root/'receipt.json'),
                 '--state',str(root/'absent.json'),'--submit']
             report={'status':'read_complete','category':'all_metadata_names_present_with_variants','missing_names':[]}

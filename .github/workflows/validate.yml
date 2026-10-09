@@ -7,36 +7,50 @@ permissions:
 jobs:
   validate:
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # verified v6.0.2
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: '1.27.2'
+          cache: false
+      - name: Build pinned standard exporter
+        run: |
+          GOBIN="$RUNNER_TEMP/tools" go install github.com/packwiz/packwiz@v0.0.0-20260218225342-dfd8b68a4796
       - run: python3 -m unittest discover -s tests -v
       - run: python3 -m compileall -q scripts tests
-      - name: Keep ZIP binaries out of Git
+      - name: Reject committed distribution binaries
         run: |
           python3 - <<'PY'
           import subprocess
           paths = subprocess.check_output(['git', 'ls-files', '-z']).split(b'\0')
-          if any(p.lower().endswith(b'.zip') for p in paths):
-              raise SystemExit('ZIP binaries belong in reviewed Release assets, not Git.')
+          if any(p.lower().endswith((b'.zip', b'.jar', b'.mrpack')) for p in paths):
+              raise SystemExit('Distribution/tool binaries do not belong in Git.')
           PY
-      - name: Check App export input state
-        id: inputs
-        run: python3 scripts/verify_app_exports.py --check-state --profile client --github-output "$GITHUB_OUTPUT"
-      - name: Verify the pinned client App export without saving artifacts
-        if: steps.inputs.outputs.ready == 'true'
-        shell: bash
+      - name: Generate and inspect both ZIPs from repository source
         run: |
-          set -euo pipefail
-          python3 scripts/verify_app_exports.py --lock exports/exports.lock.json --policy exports/policy.json --release-config release.json --profile client --fetch --output "$RUNNER_TEMP/verified-exports" --commit "$GITHUB_SHA"
-      - name: Build and check lightweight server setup offline
-        if: steps.inputs.outputs.ready == 'true'
+          python3 scripts/native_pack.py --output "$RUNNER_TEMP/build" --packwiz "$RUNNER_TEMP/tools/packwiz"
+          VERSION=$(python3 -c 'import json;print(json.load(open("pack/release.json"))["version"])')
+          python3 scripts/publish_pair.py --client "$RUNNER_TEMP/build/shimae-server-modpack-${VERSION}.zip" --client-receipt "$RUNNER_TEMP/build/client.json" --server "$RUNNER_TEMP/build/shimae-server-modpack-${VERSION}-serverpack.zip" --server-receipt "$RUNNER_TEMP/build/server.json" --receipt "$RUNNER_TEMP/build/plan.json"
+      - name: Confirm independent rebuild preserves references and settings
         run: |
-          set -euo pipefail
-          VERSION=$(python3 -c 'import json; print(json.load(open("exports/exports.lock.json"))["version"])')
-          CLIENT_NAME=$(python3 -c 'import json; print(json.load(open("exports/exports.lock.json"))["profiles"]["client"]["filename"])')
-          python3 scripts/serverpack.py --client "$RUNNER_TEMP/verified-exports/$CLIENT_NAME" --output "$RUNNER_TEMP/verified-exports/shimae-server-modpack-${VERSION}-serverpack.zip" --receipt "$RUNNER_TEMP/verified-exports/server.json"
-          python3 scripts/publish_pair.py --client "$RUNNER_TEMP/verified-exports/$CLIENT_NAME" --server "$RUNNER_TEMP/verified-exports/shimae-server-modpack-${VERSION}-serverpack.zip" --server-receipt "$RUNNER_TEMP/verified-exports/server.json" --receipt "$RUNNER_TEMP/verified-exports/plan.json"
+          python3 scripts/native_pack.py --output "$RUNNER_TEMP/rebuild" --packwiz "$RUNNER_TEMP/tools/packwiz"
+          python3 - <<'PY'
+          import os, pathlib
+          a=pathlib.Path(os.environ['RUNNER_TEMP'])/'build'
+          b=a.parent/'rebuild'
+          import json, sys
+          sys.path.insert(0, 'scripts')
+          import native_pack
+          native_pack.compare_builds(a, b)
+          PY
+      - name: Save reviewable generated ZIPs and receipts
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: shimae-native-review-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/build/
+          retention-days: 14
+          if-no-files-found: error

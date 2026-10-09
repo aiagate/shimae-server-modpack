@@ -1,0 +1,110 @@
+[data]
+	#Max samples stored per display panel (default 600 = 10 min at 1/sec)
+	# Default: 600
+	# Range: 60 ~ 6000
+	panelBufferSize = 600
+	#Max samples stored per recorder (default 1800 = 30 min at 1/sec)
+	# Default: 1800
+	# Range: 60 ~ 18000
+	recorderBufferSize = 1800
+	#Ticks between samples (20 = 1 second). Lower = more resolution, more memory
+	# Default: 20
+	# Range: 1 ~ 200
+	sampleIntervalTicks = 20
+
+[display]
+	#Passive refresh interval for stats-link auto-read sources (20 = default, 10 = high refresh, 5 = aggressive)
+	# Default: 20
+	# Range: 5 ~ 20
+	statsLinkPassiveRefreshTicks = 20
+	#Responsive refresh cap for live stats-link telemetry. Effective cadence uses the lower of this and statsLinkPassiveRefreshTicks. Default 5 for snappier AERO/Simulated updates.
+	# Default: 5
+	# Range: 5 ~ 20
+	responsiveStatsLinkRefreshTicks = 5
+
+[export]
+	#Allow CSV export from recorders
+	enableCsvExport = true
+	#Auto-export interval in minutes (0 = disabled)
+	# Default: 0
+	# Range: 0 ~ 60
+	csvAutoExportIntervalMinutes = 0
+
+[dashboard]
+	#Minimum multiblock blocks (W*H) to auto-activate dashboard mode
+	# Default: 6
+	# Range: 4 ~ 64
+	dashboardMinBlocks = 6
+	#Minimum width or height to allow dashboard (prevents thin strips)
+	# Default: 3
+	# Range: 2 ~ 8
+	dashboardMinDimension = 3
+	#Enable scrolling alert ticker in dashboard mode
+	dashboardTickerEnabled = true
+	#Ticker scroll speed in pixels per texture update (1-5)
+	# Default: 1
+	# Range: 1 ~ 5
+	dashboardTickerSpeed = 1
+
+[topology]
+	#Default maximum nodes in topology map (higher = more CPU). Panel settings can lower this per display.
+	# Default: 200
+	# Range: 10 ~ 1000
+	topologyMaxNodes = 200
+	#Radius to search for kinetic seed blocks
+	# Default: 5
+	# Range: 1 ~ 16
+	topologyScanRadius = 5
+	#Force-directed layout iterations (higher = better layout, more CPU)
+	# Default: 150
+	# Range: 30 ~ 300
+	topologyLayoutIterations = 150
+	#Force-directed layout iterations for the full train map screen (higher = better layout, more CPU)
+	# Default: 180
+	# Range: 30 ~ 500
+	trainMapLayoutIterations = 180
+
+[dieselEngines]
+	#Show every detected Create Diesel Generators metric. Disabled keeps Diesel displays curated for normal play.
+	showRawDieselMetrics = false
+
+#Verbose diagnostic logging toggles. Only the subsystems with detailed developer trace logging are exposed here; other subsystems log at standard levels and do not need a toggle.
+[debug]
+	#Enable verbose FCC and flight-control runtime logs.
+	fccVerboseLogging = false
+	#Enable verbose RPM Governor runtime logs.
+	rpmGovernorVerboseLogging = false
+	#Enable antenna placement and display-link diagnostics.
+	antennaDebugLogging = false
+
+[vccMkII]
+	#If true, a VCC Mk II re-applies its saved cockpit control hold (throttle, steering, etc.) on world load while armed. If false (default), controls hold across GUI reopen but require one fresh input after a world load so the craft never moves on its own.
+	vccPersistControlsOnLoad = false
+
+[inductionHeater]
+	#SU drawn per RPM by an active Induction Heater (>= 64 RPM). Default 32 makes the anchor costs 2048 SU at 64 RPM, 4096 SU at 128 RPM (Kindled) and 8192 SU at 256 RPM (Superheated).
+	# Default: 32.0
+	# Range: 1.0 ~ 64.0
+	inductionHeaterStressImpact = 32.0
+	#Seconds of continuous Superheated runtime one Induction Coil survives before burning out.
+	# Default: 240
+	# Range: 10 ~ 3600
+	inductionCoilLifetimeSeconds = 240
+
+[antenna]
+	#Direct-link range multiplier granted by a Small Signal Antenna.
+	# Default: 4
+	# Range: 1 ~ 64
+	antennaRangeMultiplierSmall = 4
+	#Direct-link range multiplier granted by an Advanced Signal Antenna.
+	# Default: 12
+	# Range: 1 ~ 128
+	antennaRangeMultiplierAdvanced = 12
+	#Direct-link range multiplier granted by a TRT Signal Antenna (also bridges loaded Overworld and Nether targets).
+	# Default: 32
+	# Range: 1 ~ 512
+	antennaRangeMultiplierTrt = 32
+
+[experimental]
+	#Show experimental, in-development items (the VCC Mk II, the Stats Display Mk2, and the Aeronautics Hinge) in the creative menu and JEI. Off by default because they are unfinished and may change or break. They stay obtainable with /give regardless of this setting.
+	showExperimentalBlocks = false

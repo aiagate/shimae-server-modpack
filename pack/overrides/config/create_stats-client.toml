@@ -1,0 +1,13 @@
+[sound]
+	#Volume of the Kinetic Flywheel hum loop (0.0 = silent, 1.0 = full).
+	# Default: 1.0
+	# Range: 0.0 ~ 1.0
+	flywheelSoundVolume = 1.0
+
+[graphics]
+	#Draw the soft phosphor glow around Stats Display line-chart traces. Turn off for crisp, flat lines.
+	signalTraceGlow = true
+	#Global ceiling (blocks) on Create Stats display render distance. Each display has its own tuned distance (32-96); this only ever caps them lower, never higher. 128 = no cap. Client-only, so each player controls their own in multiplayer.
+	# Default: 128
+	# Range: 16 ~ 128
+	maxRenderDistance = 128
