@@ -64,7 +64,7 @@ ZIPのCRC、SHA256、manifest・版・loader・参照ID、危険なパス、重�
 
 ## 軽量サーバー導入ZIPの形式
 
-`scripts/serverpack.py`はApp clientのmanifestとmodlistをバイトそのまま保持し、現行configからclient用9件を除いた309件、ライセンス文書2件、server参照189件の記録、Compose例、導入手順を格納します。MOD JAR・loader・Java・world・EULA同意・認証情報を同梱しません。0.0.1材料による静的検査では430,699 bytesです。公開済み683 MB版は変更しません。2つのZIPは役割が違います。
+`scripts/serverpack.py`はApp clientのmanifestとmodlistをバイトそのまま保持し、現行configからclient用9件を除いた309件、ライセンス文書2件、server参照189件の記録、Compose例、導入手順を格納します。MOD JAR・loader・Java・world・EULA同意・認証情報を同梱しません。0.0.1材料による静的検査では3,033,671 bytesです。エントリ順、時刻、属性を固定し、圧縮ライブラリによる差を避けて無圧縮ZIPにしています。公開済み683 MB版は変更しません。2つのZIPは役割が違います。
 
 標準の[itzg AUTO_CURSEFORGE](https://docker-minecraft-server.readthedocs.io/en/latest/types-and-platforms/mod-platforms/auto-curseforge/)はローカルZIPを`CF_MODPACK_ZIP`で読めます。Composeは元ZIPを残して展開した新規フォルダから起動する例です。manifestの199件を編集せず、`CF_EXCLUDE_MODS`で10件を除外、`CF_FORCE_INCLUDE_MODS`で意図した189件を指定します。設定はZIPのoverridesから導入されます。java21イメージは現在Core API keyを内蔵しているため、追加キーの作成は一律必須にしません。自前キーを使う場合はDocker secret等で渡します。自動取得が禁止されたMODは標準ツールの指示に従ってブラウザで該当file IDを取得します。独自Pythonダウンローダーはありません。
 

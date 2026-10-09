@@ -118,7 +118,8 @@ def write_zip(output, files):
             info=zipfile.ZipInfo(name, (2000,1,1,0,0,0))
             info.create_system=3
             info.external_attr=0o100644 << 16
-            info.compress_type=zipfile.ZIP_DEFLATED
+            # Stored entries avoid zlib/platform-dependent bytes across reruns.
+            info.compress_type=zipfile.ZIP_STORED
             archive.writestr(info, content)
 
 
@@ -135,7 +136,7 @@ def verify_prepared(server, receipt, client, policy, version, refs=None):
         for info in archive.infolist():
             release.need(info.file_size == len(expected[info.filename]) and
                 not info.flag_bits & 1 and info.external_attr == 0o100644 << 16 and
-                info.compress_type == zipfile.ZIP_DEFLATED and archive.read(info) == expected[info.filename],
+                info.compress_type == zipfile.ZIP_STORED and archive.read(info) == expected[info.filename],
                 'server setup bytes differ from verified inputs')
     release.need(receipt.get('schema_version')==1 and receipt.get('version')==version and
         receipt.get('client_sha256')==sha(client) and receipt.get('sha256')==sha(server) and
