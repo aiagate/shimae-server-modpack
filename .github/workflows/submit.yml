@@ -33,7 +33,7 @@ jobs:
       server_artifact_id: ${{ steps.server.outputs.artifact-id }}
       report_artifact_id: ${{ steps.report.outputs.artifact-id }}
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
@@ -43,18 +43,22 @@ jobs:
         run: |
           python3 -m unittest discover -s tests -v
           python3 -m compileall -q scripts tests
-      - name: Fetch and verify reviewed App client
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: '1.27.2'
+          cache: false
+      - name: Build pinned standard exporter
+        run: GOBIN="$RUNNER_TEMP/tools" go install github.com/packwiz/packwiz@v0.0.0-20260218225342-dfd8b68a4796
+      - name: Generate and verify repository-owned client/server ZIPs
         id: verify
-        run: python3 scripts/verify_app_exports.py --profile client --fetch --output "$RUNNER_TEMP/verified" --commit "$GITHUB_SHA" --github-output "$GITHUB_OUTPUT"
-      - name: Build lightweight server setup and offline publication plan
-        env:
-          CLIENT_ZIP: ${{ steps.verify.outputs.client_zip }}
         run: |
           set -euo pipefail
-          VERSION=$(python3 -c 'import json; print(json.load(open("exports/exports.lock.json"))["version"])')
+          python3 scripts/native_pack.py --output "$RUNNER_TEMP/verified" --packwiz "$RUNNER_TEMP/tools/packwiz"
+          VERSION=$(python3 -c 'import json; print(json.load(open("pack/release.json"))["version"])')
+          CLIENT_ZIP="$RUNNER_TEMP/verified/shimae-server-modpack-${VERSION}.zip"
           SERVER_ZIP="$RUNNER_TEMP/verified/shimae-server-modpack-${VERSION}-serverpack.zip"
-          python3 scripts/serverpack.py --client "$CLIENT_ZIP" --output "$SERVER_ZIP" --receipt "$RUNNER_TEMP/verified/server.json"
-          python3 scripts/publish_pair.py --client "$CLIENT_ZIP" --server "$SERVER_ZIP" --server-receipt "$RUNNER_TEMP/verified/server.json" --receipt "$RUNNER_TEMP/verified/plan.json"
+          python3 scripts/publish_pair.py --client "$CLIENT_ZIP" --client-receipt "$RUNNER_TEMP/verified/client.json" --server "$SERVER_ZIP" --server-receipt "$RUNNER_TEMP/verified/server.json" --receipt "$RUNNER_TEMP/verified/plan.json"
+          echo "client_zip=$CLIENT_ZIP" >> "$GITHUB_OUTPUT"
       - name: Save exact client ZIP
         id: client
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -79,7 +83,7 @@ jobs:
           path: |
             ${{ runner.temp }}/verified/server.json
             ${{ runner.temp }}/verified/plan.json
-            ${{ runner.temp }}/verified/receipt.json
+            ${{ runner.temp }}/verified/client.json
           retention-days: 14
           if-no-files-found: error
   submit:
@@ -124,15 +128,15 @@ jobs:
           MANUAL_RELEASE: ${{ inputs.manual_release }}
         run: |
           set -euo pipefail
-          VERSION=$(python3 -c 'import json; print(json.load(open("exports/exports.lock.json"))["version"])')
-          CLIENT_NAME=$(python3 -c 'import json; print(json.load(open("exports/exports.lock.json"))["profiles"]["client"]["filename"])')
+          VERSION=$(python3 -c 'import json; print(json.load(open("pack/release.json"))["version"])')
+          CLIENT_NAME="shimae-server-modpack-${VERSION}.zip"
           EXTRA=()
           if [[ -n "$EXISTING_CLIENT" ]]; then
             [[ "$EXISTING_CLIENT" =~ ^[1-9][0-9]*$ ]] || exit 1
             EXTRA+=(--existing-client-file-id "$EXISTING_CLIENT")
           fi
           if [[ "$MANUAL_RELEASE" == true ]]; then EXTRA+=(--manual-release); fi
-          python3 scripts/publish_pair.py --client "$RUNNER_TEMP/submission/$CLIENT_NAME" --server "$RUNNER_TEMP/submission/shimae-server-modpack-${VERSION}-serverpack.zip" --server-receipt "$RUNNER_TEMP/reports/server.json" --receipt "$RUNNER_TEMP/submission-result.json" --mode "$MODE" "${EXTRA[@]}" --submit
+          python3 scripts/publish_pair.py --client "$RUNNER_TEMP/submission/$CLIENT_NAME" --client-receipt "$RUNNER_TEMP/reports/client.json" --server "$RUNNER_TEMP/submission/shimae-server-modpack-${VERSION}-serverpack.zip" --server-receipt "$RUNNER_TEMP/reports/server.json" --receipt "$RUNNER_TEMP/submission-result.json" --mode "$MODE" "${EXTRA[@]}" --submit
       - name: Preserve receipt even if acceptance is uncertain
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9

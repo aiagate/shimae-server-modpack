@@ -1,4 +1,4 @@
-"""Build a lightweight installer input from a verified, unchanged App manifest.
+"""Build a lightweight installer input from a verified client manifest.
 
 The standard itzg AUTO_CURSEFORGE installer fetches pinned MODs at deployment.
 This ZIP is not a preassembled, immediately executable Java server.
@@ -74,7 +74,7 @@ volumes:
 
 This is installer input, not a standalone preassembled ServerPack. No MOD JARs,
 Java runtime, world, credentials or EULA acceptance are bundled. manifest.json
-is byte-for-byte the reviewed client App export; SERVER-REFERENCES.json records
+is byte-for-byte the verified client manifest; SERVER-REFERENCES.json records
 which pinned references are intended for the server. The compose example uses
 the standard itzg AUTO_CURSEFORGE installer, not a custom downloader.
 
