@@ -91,6 +91,11 @@ class PublicationTests(unittest.TestCase):
         journal=Mock(); upload=Mock()
         p.publish(Path('c'),Path('s'),CONFIG,'synthetic-next','test',IDENTITY,known,journal,uploader=upload)
         upload.assert_not_called(); journal.read.assert_not_called()
+    def test_unwritable_receipt_stops_before_any_claim_or_post(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            journal=Mock();upload=Mock()
+            with self.assertRaises(OSError):self.call(journal,upload,receipt=Path(tmp))
+            journal.read.assert_not_called();upload.assert_not_called()
     def test_manual_publication_flag_is_explicit(self):
         upload=Mock(side_effect=[101,102]); self.call(Journal(),upload,manual=True)
         self.assertTrue(all(c.args[2]['isMarkedForManualRelease'] for c in upload.call_args_list))
@@ -99,16 +104,18 @@ class AuthenticationPreflightTests(unittest.TestCase):
     def test_failed_get_blocks_github_mutation_and_post_and_keeps_sanitized_receipt(self):
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp); source=root/'server.json'; source.write_text(json.dumps({'sha256':'b'*64}))
+            (root/'client.json').write_text('{}')
             receipt=root/'receipt.json'
-            args=['publish_pair.py','--source','app','--client',str(root/'client.zip'),'--server',str(root/'server.zip'),
+            (root/'client.json').write_text('{}')
+            args=['publish_pair.py','--client-receipt',str(root/'client.json'),'--client',str(root/'client.zip'),'--server',str(root/'server.zip'),
                 '--server-receipt',str(source),'--receipt',str(receipt),'--state',str(root/'absent.json'),'--submit']
             config=dict(CONFIG)
             with patch.object(sys,'argv',args), patch.dict('os.environ',{
                     'GITHUB_REF':'refs/heads/main','CURSEFORGE_SUBMISSION_ENABLED':'true',
                     'CURSEFORGE_API_TOKEN':'synthetic-token'}), \
-                 patch('verify_app_exports.load_inputs',return_value=({'version':'synthetic-next'}, {}, {}, {'client':config})), \
-                 patch('verify_app_exports.check_blob',return_value='a'*64), \
-                 patch('verify_app_exports.read_blob',return_value=b'test'), \
+                 patch('native_pack.load_inputs',return_value=({'version':'synthetic-next'}, {}, {}, 'source')), patch('native_pack.runtime_config',return_value=config), \
+                 patch('native_pack.verify_client',return_value='a'*64), \
+                 patch('native_pack.policy',return_value={}), \
                  patch('serverpack.verify_prepared'), \
                  patch('diagnose_api.audit',return_value={'status':'unconfirmed','http_status':400,'category':'http_non_success'}), \
                  patch.object(p,'publish_github') as github, patch.object(p,'publish') as publisher:
@@ -116,20 +123,35 @@ class AuthenticationPreflightTests(unittest.TestCase):
             github.assert_not_called(); publisher.assert_not_called()
             self.assertEqual(json.loads(receipt.read_text())['status'],'authentication_preflight_failed')
 
+class RepositoryValidationTests(unittest.TestCase):
+    def test_changed_client_fails_before_github_or_post(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);(root/'client.json').write_text('{}')
+            args=['publish_pair.py','--client',str(root/'client.zip'),'--client-receipt',str(root/'client.json'),
+                '--server',str(root/'server.zip'),'--server-receipt',str(root/'server.json'),
+                '--receipt',str(root/'receipt.json'),'--submit']
+            with patch.object(sys,'argv',args),patch('native_pack.load_inputs',return_value=({'version':'0.0.2'},{},{},'source')), \
+                 patch('native_pack.verify_client',side_effect=release.Invalid('changed source bytes')), \
+                 patch.object(p,'publish_github') as github,patch.object(p,'publish') as publisher:
+                self.assertEqual(p.main(),1)
+            github.assert_not_called();publisher.assert_not_called()
+            self.assertFalse((root/'receipt.json').exists())
+
 class VersionVariantPublicationTests(unittest.TestCase):
     def test_documented_string_metadata_passes_audit_with_multiple_type_ids(self):
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp); source=root/'server.json'; source.write_text(json.dumps({'sha256':'b'*64}))
-            args=['publish_pair.py','--source','app','--client',str(root/'client.zip'),'--server',str(root/'server.zip'),
+            (root/'client.json').write_text('{}')
+            args=['publish_pair.py','--client-receipt',str(root/'client.json'),'--client',str(root/'client.zip'),'--server',str(root/'server.zip'),
                 '--server-receipt',str(source),'--receipt',str(root/'receipt.json'),
                 '--state',str(root/'absent.json'),'--submit']
             report={'status':'read_complete','category':'all_metadata_names_present_with_variants','missing_names':[]}
             with patch.object(sys,'argv',args), patch.dict('os.environ',{
                     'GITHUB_REF':'refs/heads/main','CURSEFORGE_SUBMISSION_ENABLED':'true',
                     'CURSEFORGE_API_TOKEN':'synthetic-token'}), \
-                 patch('verify_app_exports.load_inputs',return_value=({'version':'synthetic-next'}, {}, {}, {'client':dict(CONFIG)})), \
-                 patch('verify_app_exports.check_blob',return_value='a'*64), \
-                 patch('verify_app_exports.read_blob',return_value=b'test'), \
+                 patch('native_pack.load_inputs',return_value=({'version':'synthetic-next'}, {}, {}, 'source')), patch('native_pack.runtime_config',return_value=dict(CONFIG)), \
+                 patch('native_pack.verify_client',return_value='a'*64), \
+                 patch('native_pack.policy',return_value={}), \
                  patch('serverpack.verify_prepared'), \
                  patch('diagnose_api.audit',return_value=report), \
                  patch.object(p,'publish_github') as github, \

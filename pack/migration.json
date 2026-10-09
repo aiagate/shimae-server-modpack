@@ -327,5 +327,9 @@
     "overrides/config/yacl.json5": "121b93764159be6fb7dab523b29a844e2bb78400ce8c48f52135a097e9b0006e",
     "overrides/config/yungsmenutweaks-neoforge-1_21.toml": "f03258dd68fab838e12affe9c56d7a558a808f0803458b657b77acdc84fd4915",
     "overrides/config/zeta-common.toml": "d985bfc68899c91aa642736400472f6ab876dedaaef4b8c31f38b52d48de633d"
+  },
+  "reference_sha256": {
+    "client": "c2c59de03a441e6be47e7a53551e6d44e8e75c38ebf7677f5a7251f92d1891ec",
+    "server": "5a4e92de6b6e1c5031d898820536638fd3c1734ff1fcf00359817704df80f3f2"
   }
 }
