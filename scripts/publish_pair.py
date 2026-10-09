@@ -125,7 +125,7 @@ def submit_file(path, project_id, metadata, token, connection_factory=http.clien
         status = response.status
         if type(status) is not int or not 200 <= status < 300:
             raise release.SubmissionError('http_non_success', phase, status,
-                                          release.read_error_summary(response))
+                                          release.read_error_summary(response, (token,)))
         phase = 'response_body'
         raw = response.read(65537)
         if len(raw) > 65536:
@@ -153,6 +153,15 @@ def submit_file(path, project_id, metadata, token, connection_factory=http.clien
                 connection.close()
             except (OSError, http.client.HTTPException):
                 pass
+
+
+def server_metadata(config,version,changelog,parent,manual=False):
+    # Child files inherit game versions. Avoid optional name resolution on the
+    # parent route, matching the Upload API's supported parent-only metadata.
+    return {'changelog':changelog,'changelogType':'markdown',
+        'displayName':f'Shimae Server Modpack {version} - Server Pack',
+        'releaseType':config['release_type'],'parentFileID':parent,
+        'isMarkedForManualRelease':manual}
 
 
 def publish(client, server, config, version, changelog, identity, known, journal,
@@ -195,10 +204,7 @@ def publish(client, server, config, version, changelog, identity, known, journal
             if kind == 'client':
                 metadata = release.metadata(config, changelog)
             else:
-                metadata = {'changelog': changelog, 'changelogType': 'markdown',
-                    'displayName': f'Shimae Server Modpack {version} - Server Pack',
-                    'releaseType': config['release_type'], 'parentFileID': parent,
-                    'gameVersionNames': ['Server']}
+                metadata = server_metadata(config,version,changelog,parent,manual)
             metadata['isMarkedForManualRelease'] = manual
             file_id = uploader(path, config['project_id'], metadata, token)
             # Keep accepted ID locally even if durable result upload fails.
@@ -319,8 +325,7 @@ def main():
                        published_version_blocks_changed_bytes=bool(known and known.get('version') == lock['version'] and any(known.get(k) != v for k,v in identity.items())),
                        existing_state_matches=bool(known and all(known.get(k) == v for k,v in identity.items())),
                        client_metadata=release.metadata(configs['client'], Path('CHANGELOG.md').read_text()),
-                       server_metadata={'parentFileID': 'recorded-or-returned-client-file-id',
-                                        'gameVersionNames': ['Server'], 'releaseType': configs['client']['release_type']})
+                       server_metadata=server_metadata(configs['client'],lock['version'],Path('CHANGELOG.md').read_text(),'recorded-or-returned-client-file-id',args.manual_release))
             with args.receipt.open('x') as handle:
                 json.dump(dry, handle, indent=2); handle.write('\n')
             print('DRY RUN: both ZIPs verified; no network mutation or upload.')

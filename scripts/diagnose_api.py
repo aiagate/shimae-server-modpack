@@ -41,7 +41,7 @@ def audit(token, connection_factory=http.client.HTTPSConnection):
             return report
         report['http_status'] = response.status
         if not 200 <= response.status < 300:
-            report.update(category='http_non_success', response_summary=read_error_summary(response))
+            report.update(category='http_non_success', response_summary=read_error_summary(response, (token,)))
             return report
         raw = response.read(LIMIT + 1)
         if len(raw) > LIMIT:

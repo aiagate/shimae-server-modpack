@@ -39,7 +39,7 @@ class Invalid(ValueError):
 
 
 class SubmissionError(Invalid):
-    """Fixed diagnostic fields only; never retain server text or exceptions."""
+    """Bounded allowlisted diagnostics; never retain raw bodies or exceptions."""
 
     def __init__(self, category, phase, http_status=None, response_summary=None):
         self.diagnostics = {'category': category, 'phase': phase,
@@ -241,8 +241,42 @@ MESSAGE_HINTS = {
 }
 
 
-def safe_api_error(raw):
-    """Project bounded JSON onto fixed keys/enums; never return free text."""
+# Known protocol vocabulary only. Unknown reflected values are never retained.
+ERROR_MESSAGE_WORDS = set(('a an the this that of to for from as at by in on with and or but '
+    'is are was were be been being not no only must should can cannot could may will '
+    'file files parent child project projects upload uploaded uploading additional server pack '
+    'invalid valid validation error errors failed failure required missing found exist exists '
+    'does do have has already duplicate approved approval rejected pending processing review '
+    'status id ids metadata game version versions name names release type changelog extension '
+    'permission permissions authorized unauthorized authentication api token key credentials '
+    'provided specified supported unsupported allowed notallowed empty null request response '
+    'size large small length limit exceeds contain contains expected match matches belong belongs '
+    'use used set value values Please please try again before after until wait needs need '
+    'parentfileid isserverpack gameversions gameversionnames releasetype displayname '
+    'changelogtype ismarkedformanualrelease minecraft neoforge client').lower().split())
+
+
+def diagnostic_message(message, secrets=()):
+    if not isinstance(message,str) or len(message)>4096:
+        return None
+    for secret in secrets:
+        if secret:
+            message=message.replace(secret,'[redacted]')
+    message=re.sub(r'https?://\S+|\S+@\S+|(?:\d{1,3}\.){3}\d{1,3}|[A-Za-z]:[\\/]\S+|/\S+', '[redacted]', message)
+    tokens=re.findall(r'[A-Za-z][A-Za-z0-9_-]*|[0-9]+|[.,:;!?()]',message)
+    kept=[];meaningful=False
+    for word in tokens[:128]:
+        if word.lower() in ERROR_MESSAGE_WORDS:
+            kept.append(word);meaningful=True
+        elif word in '.,:;!?()':
+            kept.append(word)
+        elif not kept or kept[-1]!='[redacted]':
+            kept.append('[redacted]')
+    return ' '.join(kept)[:512] if meaningful else None
+
+
+def safe_api_error(raw, secrets=()):
+    """Allow known fields/codes and redacted protocol vocabulary, never raw bodies."""
     summary = {'response_format': 'too_large' if len(raw) > 65536 else 'non_json',
                'validation_fields': [], 'validation_codes': []}
     if len(raw) > 65536:
@@ -256,6 +290,7 @@ def safe_api_error(raw):
         return summary
     fields, codes = set(), set()
     hints = set()
+    messages = set()
 
     def field(value):
         if not isinstance(value, str):
@@ -269,6 +304,9 @@ def safe_api_error(raw):
         if not isinstance(value, dict):
             return
         field(value.get('field'))
+        for key in ('message','errorMessage','Message','ErrorMessage'):
+            safe=diagnostic_message(value.get(key),secrets)
+            if safe and len(messages)<8: messages.add(safe)
         code = value.get('code')
         if isinstance(code, str) and code in ERROR_CODES:
             codes.add(code)
@@ -285,6 +323,8 @@ def safe_api_error(raw):
         for key in ('errorMessage', 'ErrorMessage', 'message', 'Message'):
             message = value.get(key)
             if isinstance(message, str):
+                safe = diagnostic_message(message, secrets)
+                if safe and len(messages)<8: messages.add(safe)
                 # Email/domain/URL suffixes such as .invalid must not be
                 # mistaken for a server validation sentence.
                 message = re.sub(r'\S+@\S+|https?://\S+', '', message.lower())
@@ -310,15 +350,18 @@ def safe_api_error(raw):
             for value in errors:
                 entry(value)
     summary.update(validation_fields=sorted(fields), validation_codes=sorted(codes))
+    if messages:
+        summary['diagnostic_messages'] = sorted(messages)
+        summary['message_values_redacted'] = True
     if hints:
         # These fixed labels are text-derived hints, not claimed official codes.
         summary['message_hints'] = sorted(hints)
     return summary
 
 
-def read_error_summary(response):
+def read_error_summary(response, secrets=()):
     try:
-        return safe_api_error(response.read(65537))
+        return safe_api_error(response.read(65537), secrets)
     except (OSError, http.client.HTTPException):
         return {'response_format': 'read_failed', 'validation_fields': [], 'validation_codes': []}
 
@@ -346,9 +389,9 @@ def submit(blob, config, meta, token, connection_factory=http.client.HTTPSConnec
             raise SubmissionError('invalid_http_status', phase)
         status = response.status
         if not 200 <= status < 300:
-            # Retain only known JSON fields/codes, never raw bodies, messages,
-            # Location, reason phrases or headers with reflected credentials.
-            summary = read_error_summary(response)
+            # Retain known fields/codes and redacted protocol words only.
+            # Never retain raw bodies, headers or reflected credential values.
+            summary = read_error_summary(response, (token,))
             raise SubmissionError('http_non_success', phase, status, summary)
         phase = 'response_body'
         raw = response.read(65537)

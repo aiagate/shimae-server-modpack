@@ -353,6 +353,24 @@ class ReleaseTests(unittest.TestCase):
             for text in ('dummy-token', 'password', 'user@example.invalid', '123456789'):
                 self.assertNotIn(text, result)
 
+    def test_protocol_diagnostic_keeps_parent_approval_reason(self):
+        result=r.safe_api_error(json.dumps({'errorCode':1013,'errorMessage':'Only approved files can be used as parent file.'}))
+        self.assertEqual(result['diagnostic_messages'],['Only approved files can be used as parent file .'])
+        self.assertEqual(result['error_code'],1013)
+    def test_protocol_diagnostic_redacts_reflected_secrets_urls_and_unknown_values(self):
+        raw=json.dumps({'errorMessage':'Invalid parentFileID: approved https://private.invalid/a?token=abc user@example.invalid 123456 /private/path unknownvalue'})
+        result=r.safe_api_error(raw,secrets=('approved',))
+        text=json.dumps(result)
+        for private in ('approved','private.invalid','user@example','123456','unknownvalue','private/path'):
+            self.assertNotIn(private,text)
+        self.assertIn('Invalid parentFileID',text)
+    def test_error_transport_passes_token_to_diagnostic_redaction(self):
+        b,c=self.fixture();factory=Mock();response=factory.return_value.getresponse.return_value
+        response.status=400;response.read.return_value=b'{"message":"Invalid token approved"}'
+        with self.assertRaises(r.SubmissionError) as err:r.submit(b,c,{},'approved',factory)
+        self.assertNotIn('approved',json.dumps(err.exception.diagnostics))
+        self.assertIn('Invalid token',json.dumps(err.exception.diagnostics))
+
     def test_error_response_read_failure_keeps_original_http_rejection(self):
         b, c = self.fixture()
         factory = Mock()
