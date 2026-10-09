@@ -1,0 +1,61 @@
+name: Read-only publication verification
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version; blank uses repository release metadata'
+        type: string
+        default: ''
+  workflow_run:
+    workflows: [Manual client and server submission, Recover saved 0.0.2 server submission]
+    types: [completed]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  verify:
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == 'aiagate/shimae-server-modpack'))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          persist-credentials: false
+      - name: Skip submit=false preflight runs
+        id: gate
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT_NAME: ${{ github.event_name }}
+          SOURCE_WORKFLOW: ${{ github.event.workflow_run.name }}
+          SOURCE_RUN_ID: ${{ github.event.workflow_run.id }}
+        run: |
+          set -euo pipefail
+          CHECK=true
+          if [[ "$EVENT_NAME" == workflow_run && "$SOURCE_WORKFLOW" == 'Manual client and server submission' ]]; then
+            [[ "$SOURCE_RUN_ID" =~ ^[1-9][0-9]*$ ]]
+            STATUS=$(gh api "repos/aiagate/shimae-server-modpack/actions/runs/$SOURCE_RUN_ID/jobs" --jq '.jobs[] | select(.name == "submit") | .conclusion')
+            if [[ "$STATUS" != success ]]; then CHECK=false; fi
+          fi
+          echo "check=$CHECK" >> "$GITHUB_OUTPUT"
+      - name: Test approval and Server Pack classification guards
+        if: steps.gate.outputs.check == 'true'
+        run: python3 -m unittest discover -s tests -v
+      - name: Verify public approval, exact bytes, parent and Server Pack type
+        if: steps.gate.outputs.check == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          EXTRA=()
+          if [[ -n "$VERSION" ]]; then EXTRA+=(--version "$VERSION"); fi
+          python3 scripts/verify_publication.py --receipt "$RUNNER_TEMP/publication-verification.json" --wait-seconds 600 "${EXTRA[@]}"
+      - name: Preserve public verification status
+        if: always() && steps.gate.outputs.check == 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: shimae-publication-verification-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/publication-verification.json
+          retention-days: 14
+          if-no-files-found: error
