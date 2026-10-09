@@ -28,10 +28,10 @@ class AuditTests(unittest.TestCase):
         for forbidden in ('dummy-token', 'user@example.invalid', 'private'):
             self.assertNotIn(forbidden, json.dumps(result))
 
-    def test_missing_or_ambiguous_version_names_are_not_guessed(self):
+    def test_missing_names_are_not_hidden_by_duplicate_rows(self):
         for rows, category in (([], 'missing_version_names'),
                                ([{'name': 'Client', 'id': 1, 'gameVersionTypeID': 2}] * 2,
-                                'ambiguous_version_names')):
+                                'missing_version_names')):
             factory = Mock()
             response = factory.return_value.getresponse.return_value
             response.status = 200
@@ -53,3 +53,48 @@ class AuditTests(unittest.TestCase):
         with self.assertRaises(d.Invalid):
             d.audit('', factory)
         factory.return_value.request.assert_called_once()
+
+
+class CredentialPreflightTests(unittest.TestCase):
+    def test_reports_properties_without_token_value_prefix_length_or_hash(self):
+        token=' synthetic-example-value\n'
+        result=d.credential_preflight(token)
+        self.assertTrue(result['present'])
+        self.assertTrue(result['has_whitespace'])
+        self.assertTrue(result['has_control_characters'])
+        self.assertFalse(result['token_kind_verified_from_format'])
+        self.assertTrue(all(type(v) is bool for v in result.values()))
+        self.assertNotIn(token,json.dumps(result))
+    def test_opaque_format_does_not_prove_token_kind(self):
+        result=d.credential_preflight('synthetic-example-value')
+        self.assertFalse(result['has_whitespace'])
+        self.assertFalse(result['has_control_characters'])
+        self.assertFalse(result['has_non_ascii_characters'])
+        self.assertFalse(result['token_kind_verified_from_format'])
+
+
+class MalformedTokenResponseTests(unittest.TestCase):
+    def test_token_parse_error_is_fixed_hint_and_secret_text_is_discarded(self):
+        factory=Mock(); response=factory.return_value.getresponse.return_value
+        response.status=400
+        response.read.return_value=b'{"errorCode":3,"errorMessage":"Cannot parse token synthetic-secret-value"}'
+        result=d.audit('dummy-token',factory)
+        self.assertEqual(result['response_summary']['error_code'],3)
+        self.assertEqual(result['response_summary']['message_hints'],['malformed_authentication'])
+        self.assertNotIn('synthetic-secret-value',json.dumps(result))
+        factory.return_value.request.assert_called_once()
+
+
+class VersionNameVariantTests(unittest.TestCase):
+    def test_required_names_in_multiple_types_do_not_require_guessing_numeric_ids(self):
+        factory=Mock(); response=factory.return_value.getresponse.return_value
+        response.status=200
+        rows=[{'name':name,'id':i+1,'gameVersionTypeID':100+i} for i,name in enumerate(d.WANTED)]
+        rows.append({'name':'1.21.1','id':1000,'gameVersionTypeID':1})
+        response.read.return_value=json.dumps(rows).encode()
+        result=d.audit('dummy-token',factory)
+        self.assertEqual(result['status'],'read_complete')
+        self.assertEqual(result['missing_names'],[])
+        self.assertEqual(result['category'],'all_metadata_names_present_with_variants')
+        self.assertFalse(result['numeric_ids_selected'])
+        self.assertEqual(len(result['matched_versions']),4)

@@ -228,6 +228,8 @@ ERROR_CODES = frozenset(('required', 'invalid', 'invalid_value', 'not_found',
                         'invalid_metadata', 'project_not_approved', 'bad_request',
                         'unauthorized', 'forbidden', 'invalid_api_token', 'token_expired'))
 MESSAGE_HINTS = {
+    'malformed_authentication': re.compile(r'(?:parse|decode|malformed|format).{0,40}(?:token|api.?key)|'
+                                         r'(?:token|api.?key).{0,40}(?:parse|decode|malformed|format)'),
     'invalid_authentication': re.compile(r'(?:invalid|expired|revoked|not valid).{0,40}(?:token|api.?key)|'
                                          r'(?:token|api.?key).{0,40}(?:invalid|expired|revoked|not valid)'),
     'missing_authentication': re.compile(r'(?:missing|required|not provided).{0,40}(?:token|api.?key)|'

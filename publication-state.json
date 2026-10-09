@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "project_id": 1733082,
+  "version": "0.0.1",
+  "client_sha256": "b27742177d000e581a6b9ea0bd1540929ac291018ab70ef11f9bd1193dacd81c",
+  "server_sha256": "bbe4f61c23ff1c24955941bb463a5d7f2bfd871827ec8847c83b9d15cccf7c9f",
+  "client": {
+    "file_id": 9097617,
+    "status": "published"
+  },
+  "server": {
+    "file_id": 9104102,
+    "parent_file_id": 9097617,
+    "status": "published"
+  }
+}

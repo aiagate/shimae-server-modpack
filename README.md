@@ -30,29 +30,63 @@ python3 scripts/release.py --zip /path/client-app-export.zip
 
 公開用に検査した提出候補を本リポジトリの公開Release assetへ保存した後、実asset IDをclient lockと`release.json`に同一値で固定します。ZIPはGitへ追跡せず、最新assetを名前や可変URLで推測しません。
 
-## Actionsから正式公開まで
+## Actionsからクライアント・Server Packを提出する
 
-`validate.yml`はpush/PRでfixtureテスト、Python構文、GitのZIP混入、client入力状態を検査します。入力待ちは明示して取得をスキップします。client入力が揃えば固定assetのZIPを検査します。serverのasset・SHA・出所が未設定でもclientの検査は進められます。PRではartifactを保存しません。
+`validate.yml`はpush/PRでテスト、Python構文、GitのZIP混入、固定assetのApp clientを検査し、軽量サーバー導入ZIPとオフライン提出計画まで作ります。PRで提出・Release作成・artifact保存はしません。
 
-`submit.yml`はmainからの手動起動のみです。`submit=false`でclient ZIPを取得・検査し、投稿メタデータとCHANGELOGも確認します。検査済みclient ZIPを単独artifact、SHA256SUMSとreceiptを別artifactとして14日保存します。server artifactは必須にしません。
+`submit.yml`はmainからの手動起動です。タグpushでは起動しません。`submit=false`では検証と導入ZIP生成だけを行い、同じrunのclient/server ZIPとreceiptを14日間保存します。版を確定し、人が確認してから`submit=true`を指定できます。Environment `curseforge`を使いますが、既存Environmentにrequired reviewerは未設定です。保護ルールの変更は今回行いません。`manual_release=true`が既定で、API受付後も審査後の作者による公開操作を待ちます。完全自動公開を選ぶ場合だけfalseにします。
 
-`submit=true`では既存`curseforge` Environmentを利用して、同じrunのclient artifact IDだけを固定して取得します。`skip-decompress:true`で元ZIPを展開せず、同じcommitの設定とSHAを再検査し、同じバイトを一度だけUpload APIへPOSTします。API受付は審査・公開完了とは区別します。受付不明時は作者画面で確認し、自動再送しません。
+投稿jobは同じcommit・同じrunのartifact IDを固定し、ZIPのSHAと全内容を再確認します。最初に読み取り専用Upload API auditを行い、通らなければGitHub Release作成もファイルPOSTも行いません。通過した場合は同版Releaseへ検証済み2 ZIPを保存し、clientを提出、返ったfile IDを`parentFileID`としてAdditional Server Packを提出します。子に数値`gameVersions`は送りません。同名GitHub assetはSHAとサイズが一致する場合だけ再利用し、上書きしません。新しい版のReleaseがない場合、実投稿jobだけがそのcommitを指すタグ・Releaseを作成します。
 
-提出失敗のreceiptにはHTTP status、固定のエラー分類、処理段階だけを記録します。HTTP拒否、TLS・通信・timeout・HTTP protocol異常、不正JSON・file ID欠落等を区別し、応答本文・認証ヘッダー・例外の生の文字列は記録しません。失敗時の受付状態は引き続き未確認とし、診断分類だけを根拠に再提出しません。
+再送防止はGitHub Releaseの永続記録で行います。ファイルPOST前に`curseforge-*-claim.json`、受け付けたIDを得た後に`*-result.json`を追加します（実名には全SHAを含みます）。結果があるファイルは再投稿しません。client成功後のserver失敗ではclient IDを再利用します。claimだけが残る場合は新しい手動起動でも停止します。artifactの有効期限切れやworkflow再実行を理由に再POSTしません。API受付と審査・公開完了は別の状態です。
 
-HTTP拒否時は応答を64 KiBまで読み取り、既知の数値errorCode、許可したvalidationフィールド名・固定コードだけをreceiptの`response_summary`へ抽出します。errorMessage・message・未知のキーやコード・HTML等の本文は残しません。公式文書にはvalidationエラーのコード一覧がないため、未知の詳細は推測せず省略します。`diagnose.yml`は同じEnvironment Secretを用いる読み取り専用GETで、今回の3版名に対応する公開IDだけを調べます。ファイル投稿は行いません。
+`mode=server_only`は記録済みclientがある場合の子だけの提出です。記録がなく、作者画面で公開済みclientを特定済みなら`existing_client_file_id`を指定できます。公開メタデータと公式CDNのSHAが検証済みApp clientと一致した場合だけ採用します。未承認・非公開・取得不能・バイト不一致なら停止します。親を新しく投稿して補いません。
 
-既存Secret `CURSEFORGE_API_TOKEN`、Variable `CURSEFORGE_SUBMISSION_ENABLED=true`、workflowのmain限定・手動起動を利用します。Environmentの保護ルールは現在ありません。このローカル修正でSecretや権限を設定しません。Token値はチャット・Git・コマンド引数・ログへ載せません。
+通信timeoutなどで受付が不明なら作者画面とsanitized receiptを照合します。receiptに受付IDが残り、Releaseへの結果保存だけが失敗した場合も自動再送しません。確認したfile ID・親ID・同版両SHAを`publication-state.json`へレビュー付きで登録すれば、その受付済みファイルを再利用できます。登録するserverの親IDを確認します。受付なしを確認するまではclaimを削除しません。結果が判明しないまま新しい版へ逃がして再投稿もしません。
 
-公開までには、修正のPR反映・CI・レビューとマージ、正本asset登録、手動検査とclient提出、CurseForge審査と作者画面での手動公開が必要です。完了はCurseForgeで利用者がインストールできる公開状態を確認して判断します。Git入力・Release・artifactが公開される運用は本人確認済みです。
+既存0.0.1はclient `9097617`、server `9104102`が公開済みです。`publication-state.json`が同版別バイトの投稿を止めます。軽量化した0.0.1をdry-runで確認しても、公開済み同版のServer Packを置き換えたり追加投稿したりしません。
+
+## 認証の切り分けと0.0.2の準備
+
+本人のtoken更新後、[読取専用audit 37878826290](https://github.com/aiagate/shimae-server-modpack/actions/runs/37878826290)はHTTP200・GET完了になりました。`Client`、`NeoForge`、`1.21.1`のすべてを確認できています。認証GETの障害は解消しています。ファイルPOST・projectへの書込権限・親子受付・審査通過は、このGETだけでは検証していません。
+
+APIは`1.21.1`を異なる`gameVersionTypeID`の3行で返しました。既存auditの`ambiguous_version_names`はこの重複による表示です。今回の提出metadataは公式に対応した文字列`gameVersionNames`を使い、数値IDを選ばないため、全版名が存在するこの応答を拒否しません。新しいauditは`all_metadata_names_present_with_variants`と`numeric_ids_selected=false`を記録し、不足名がある場合は従来どおり止めます。
+
+旧設定の[読取専用audit 37875776072](https://github.com/aiagate/shimae-server-modpack/actions/runs/37875776072)はHTTP 400、`error_code=3`で失敗しました。ZIPや投稿metadataのないGET `/api/game/versions`でも拒否されています。公式文書にこのコードの意味の一覧はなく、失効や種類違いとは断定しません。追加の対照確認として、秘密値なしのGETはHTTP401、明示的な合成無効トークンのGETはHTTP400/code3となり、後者の応答にはトークン解析・形式エラーを示す文言がありました（本文は保存・表示していません）。これが同じコードを再現する公式API側の観測根拠です。コード3を全場面で特定原因に対応させる公式一覧はなく、実Secretの種類違い・失効まで断定しません。今後のauditではこの文言を`malformed_authentication`という固定分類だけで記録します。この旧設定ではAPI投稿できる状態を確認できませんでした。旧設定のauditでも空・前後空白・制御文字の基本検査を通過し、実際のGET応答を受けています。今回、空白・制御文字・非ASCIIの有無をbooleanだけで記録する診断も追加しました。値・先頭文字・文字数・ハッシュは記録しません。公式にUpload tokenとCore keyを区別する文字列形式の規約は見つからず、文字列の形式やSecretの存在だけでは種類を確定できません。`token_kind_verified_from_format=false`は診断の限界を明示する値です。
+
+token設定は本人が完了しています。今後の更新も本人だけが[作者画面のAPI Tokens](https://authors.curseforge.com/#/settings/api-tokens)でUpload API用tokenを作成・確認し、[GitHub Environment `curseforge`の設定画面](https://github.com/aiagate/shimae-server-modpack/settings/environments/23755335004/edit)のEnvironment secretsから`CURSEFORGE_API_TOKEN`の更新画面を開き、設定します。作者用Upload APIは`X-Api-Token`ヘッダーに生成されたトークンをそのまま渡します。Core APIの`x-api-key`とは別です。GETは公式の`https://minecraft.curseforge.com/api/game/versions`、POSTは同ホストの`/api/projects/{projectId}/upload-file`、multipartの`metadata`/`file`です。実装はこれらの指定と一致しています。チャット、コマンド引数、Git、artifactへ値を出しません。設定後は`diagnose.yml`のGETで確認します。Secret更新・tokenの取得やコピー・アカウント変更をこのPRでは行いません。既存project ID `1733082`を使うため、新しいCurseForge projectの作成は不要です。
+
+0.0.2の正式App clientが届いたら、その原本とmanifestを保全し、版・MOD参照・設定差分をレビューしてclient lock、`release.json`、CHANGELOGを更新します。別のserver App exportは不要です。このPRで0.0.1のmanifestを0.0.2へ書き換えたり、未受領の正式clientを作ったりはしません。変更をmainへ反映する前にPRのCIを確認します。マージ・タグ・実投稿はこの作業の実行範囲外です。
 
 ## 検査の範囲と生成案
 
 ZIPのCRC、SHA256、manifest・版・loader・参照ID、危険なパス、重複、symlink、暗号化、サイズ、実行属性、設定の秘密値・私的接続先・不要状態、JSON/TOMLを検査します。参照件数だけで合格にせず、199参照の完全lockと照合します。MODの全依存グラフ、mixins、掲載承認状態、実機動作や配布権利を完全自動証明したとは扱いません。
 
-`exports/server.refs.json`とserver側のpolicyは構成比較用の既存メタデータです。これはserver ZIPの受領を要求するものではありません。server用の取込プロフィールはJAR入りの実行Server PackとしてAdditional Fileへ投稿しません。
+`exports/server.refs.json`とserver側のpolicyは構成比較用の既存メタデータです。これはserver ZIPの受領を要求するものではありません。既存server側override policyには古い設定SHAがあるため、今回の導入ZIPは検証済みclientの現行config本文を使います。client用9設定を除外し、追加されたApotheosis系列3設定も保持します。
 
 [公式審査規約](https://support.curseforge.com/support/solutions/articles/9000197279-project-and-modpack-moderation-policies)はAppでのModPack作成とApp生成manifestの編集禁止を明記しています。独自の互換ZIP生成はApp起源の証拠になりません。独自生成のローカル修正は別に保持し、今回の正式投稿フローへ混ぜません。
+
+## 軽量サーバー導入ZIPの形式
+
+`scripts/serverpack.py`はApp clientのmanifestとmodlistをバイトそのまま保持し、現行configからclient用9件を除いた309件、ライセンス文書2件、server参照189件の記録、Compose例、導入手順を格納します。ルートは`manifest.json`、`modlist.html`、`SERVER-REFERENCES.json`、`compose.yaml`、`README-SERVER.md`です。`overrides/config/`に309設定、`overrides/`直下にライセンス文書2件を置きます。未変更manifestは**client用199件**です。`SERVER-REFERENCES.json`はserver用189件の記録で、App manifestの代替ではありません。MOD JAR・loader・Java・world・EULA同意・認証情報を同梱しません。0.0.1材料による静的検査では3,034,375 bytesです。主成分はconfig本文2,903,312 bytesです。エントリ順、時刻、属性を固定し、圧縮ライブラリによる差を避けて無圧縮ZIPにしています。公開済み683 MB版は変更しません。2つのZIPは役割が違います。
+
+標準の[itzg AUTO_CURSEFORGE](https://docker-minecraft-server.readthedocs.io/en/latest/types-and-platforms/mod-platforms/auto-curseforge/)はローカルZIPを`CF_MODPACK_ZIP`で読めます。Composeは元ZIPを残して展開した新規フォルダから起動する例です。manifestの199件を編集せず、`CF_EXCLUDE_MODS`で10件を除外、`CF_FORCE_INCLUDE_MODS`で意図した189件を指定します。設定はZIPのoverridesから導入されます。java21イメージは現在Core API keyを内蔵しているため、追加キーの作成は一律必須にしません。自前キーを使う場合はDocker secret等で渡します。自動取得が禁止されたMODは標準ツールの指示に従ってブラウザで該当file IDを取得します。独自Pythonダウンローダーはありません。
+
+TrueNASでは別のCustom Appで同等のread-only mountと新しい/data領域を使えます。既存composeの原本は本人が添付済みですが、この実行環境に取得済み原本はありませんでした。正本の正式転送はリンク更新後も取得を拒否され、原文を確認できていません。再添付が必要という判断にはせず、既存service名・host pathは未確認として保持しています。したがって既存composeへの確定差分とは表示しません。もし従来の`TYPE=CURSEFORGE`/`CF_SERVER_MOD`方式なら、導入方式の変更は`TYPE=AUTO_CURSEFORGE`、`CF_MODPACK_ZIP`へのZIPパス指定、`CF_SLUG`、同梱Composeの除外・保持3変数の移植、およびZIPとdownloadsのread-only mount追加です。従来の`CF_SERVER_MOD`は外します。変数の正確な189 IDの列は生成したComposeからそのまま使い、手入力で作り直しません。既存のport・memory・world領域の移行を自動では行いません。既存サービスのパス・world・composeを上書きしません。EULAは本人が確認して明示設定します。このZIPをCurseForge AppにImportするだけでサーバーが起動するという案内はしません。実機動作は本人が確認する範囲で、Docker/Javaの起動試験は実施していません。
+
+### client 199件からserver 189件を選ぶ仕組み
+
+App manifestのprojectID/fileID 199組を保持します。検証済み`exports/server.refs.json`は、その同じfile IDを持つ189組の部分集合です。差分10 project IDを`CF_EXCLUDE_MODS`へ渡し、189 project IDを`CF_FORCE_INCLUDE_MODS`へ渡します。`CF_EXCLUDE_INCLUDE_FILE`を空にしてイメージ同梱の別の除外規則は使いません。このため、参照の版を編集せずserver側の取得対象を指定できます。`SERVER-REFERENCES.json`自体を標準ツールのmanifestとして読ませる方式ではありません。標準ツールが読むのは`CF_MODPACK_ZIP`内の元manifestです。自動取得を許可しないファイルは標準ツールが不足を報告するため、指定された正確なfile IDをブラウザで取得してdownloadsへ置きます。実際の取得・起動結果は静的検査と区別します。
+
+### 新規導入と既存ワールド移行
+
+新規導入は別の空/data領域を用意し、manifestからloader・MODを取得、ZIPのoverridesを配置する手順です。既存ワールドを含まないので、最初に新規ワールドが生成されても既存ワールドの移行成功を意味しません。
+
+既存ワールドを移す場合は、実際の旧起動ディレクトリと`level-name`を確認し、停止したサーバーの整合性あるコピーまたはスナップショットを別の/data領域で使います。worldと運用設定はローカルで保持し、MOD・loaderの旧実行ファイルは持ち越さずmanifestから導入します。`server.properties`、whitelist等の運用設定はZIPに含めず、必要な値を移行先へ引き継ぎます。秘密設定はREADMEや配布ZIPへ載せません。overridesのconfigは導入時に適用されるため、既存の運用設定と配布設定の差分を確認します。
+
+[従来の`TYPE=CURSEFORGE`の公式仕様](https://docker-minecraft-server.readthedocs.io/en/latest/types-and-platforms/mod-platforms/curseforge/)では既定の`CF_BASE_DIR=/data/FeedTheBeast`等を作業場所にします。`AUTO_CURSEFORGE`は/dataへ導入するため、TYPEだけ変更して旧worldがそのまま見つかるとは扱いません。旧作業場所の正しいworldを新しい導入先に対応させる必要があります。今回、本番のcompose・world・設定には変更していません。実機確認は本人担当のままで、追加の実行承認や試験依頼はしません。
+
+[公式Server Packガイド](https://blog.curseforge.com/server-packs-tutorial/)に従い対応clientのAdditional Fileへ紐づける提出metadataを用意します。ただし公式資料にこの導入用レイアウトの受理保証はなく、manifest形式のServer Packを一律禁止する記述も確認できていません。Appで出力したclientと、自動生成したサーバー導入用ZIPを区別して表示します。審査結果は実際の提出後に確認する必要があります。
 
 ## ライセンスと共通処理
 
@@ -72,3 +106,5 @@ ZIPのCRC、SHA256、manifest・版・loader・参照ID、危険なパス、重�
 原本は732,350 bytes、SHA256 `042de1c25ce9995f04eac015ba9e6db257749a677c5ad02f50293b5decac7cf8`です。提出候補は430,127 bytes、SHA256 `b27742177d000e581a6b9ea0bd1540929ac291018ab70ef11f9bd1193dacd81c`です。公開する版はmanifestどおり`0.0.1`で、独自に`0.1-no-tfc`へ戻しません。
 
 新しいApp出力の設定差分14件を保持し、追加された有効な設定3件も採用しました。未出力のシェーダー設定ファイルは勝手に追加しません。Apotheosis設定にあるPlacebo CFG仕様とEvalEx利用例への公開コメント2種類を、パスと行SHAに限定してレビュー済み例外へ登録しました。秘密値検査は常に適用します。実際の起動・掲載承認状態・CurseForge審査通過をこのローカル検査だけで証明したとは扱いません。
+
+NeoForgeのmanifest処理は[公式インストーラー実装](https://github.com/itzg/mc-image-helper/blob/main/src/main/java/me/itzg/helpers/curseforge/CurseForgeInstaller.java)の`prepareModLoader`/`prepareNeoForge`でも確認しました。これは対象MOD一式の実機動作の保証ではありません。
