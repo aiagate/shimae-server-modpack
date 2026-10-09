@@ -125,7 +125,7 @@ def submit_file(path, project_id, metadata, token, connection_factory=http.clien
         status = response.status
         if type(status) is not int or not 200 <= status < 300:
             raise release.SubmissionError('http_non_success', phase, status,
-                                          release.read_error_summary(response))
+                                          release.read_error_summary(response, (token,)))
         phase = 'response_body'
         raw = response.read(65537)
         if len(raw) > 65536:

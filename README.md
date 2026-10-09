@@ -42,7 +42,7 @@ clientにはMOD/Shaderを199固定IDで参照するmanifestと設定を入れ、
 
 ## 認証と審査の範囲
 
-[mainのGET audit](https://github.com/aiagate/shimae-server-modpack/actions/runs/37880105945)はHTTP200で成功済みです。同じ版名が複数種別に存在するため、公式の`gameVersionNames`を使用し数値IDは推測しません。診断は空白等のbooleanと固定分類だけで、token値・先頭文字・長さ・ハッシュを出しません。
+[mainのGET audit](https://github.com/aiagate/shimae-server-modpack/actions/runs/37880105945)はHTTP200で成功済みです。同じ版名が複数種別に存在するため、公式の`gameVersionNames`を使用し数値IDは推測しません。診断には空白等のboolean、固定分類と、既知のAPI用語だけを残したエラー説明を保存します。token値・URL・メール・未知の値は伏せ、tokenの先頭文字・長さ・ハッシュや生の応答本文を出しません。
 
 [作者Upload token](https://authors.curseforge.com/#/settings/api-tokens)を[GitHub curseforge Environment](https://github.com/aiagate/shimae-server-modpack/settings/environments/23755335004/edit)の`CURSEFORGE_API_TOKEN`へ本人が設定済みです。`X-Api-Token`を使い、Core APIのキーとは区別します。
 
