@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "redstone",
+  "ingredients": [
+    {
+      "item": "create:andesite_casing"
+    },
+    {
+      "item": "create:rotation_speed_controller"
+    }
+  ],
+  "result": {
+    "id": "createcoasters:speed_block",
+    "count": 1
+  }
+}

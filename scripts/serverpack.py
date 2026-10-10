@@ -87,8 +87,8 @@ the standard itzg AUTO_CURSEFORGE installer, not a custom downloader.
 4. AUTO_CURSEFORGE downloads pinned MODs and the manifest's loader. If it reports
    files unavailable through automatic downloads, download those exact files
    using CurseForge in a browser and put them in downloads, then restart.
-5. Check logs before connecting with the matching client. Runtime testing has
-   not been performed by this build. Port, memory and host paths are examples.
+5. Check logs before connecting with the matching client. Set port, memory and
+   host paths for your environment.
 
 Existing world migration is a separate operation: this ZIP contains neither
 the world nor server.properties and does not move them. Legacy CURSEFORGE can
@@ -105,11 +105,6 @@ CF_API_KEY_FILE and a Docker secret (or a protected environment variable).
 A Core API key is different from the author Upload API token: never put the
 Upload token in this archive or on the Minecraft server. Image updates can
 change installer behavior; record/pin a tested image digest for production.
-
-For CurseForge, this archive is an Additional Server Pack linked to the matching
-client via parentFileID. Moderation still applies; submission is not approval.
-Official guidance does not explicitly guarantee acceptance of this particular
-installer-input layout. Do not call it App-exported or independently executable.
 
 References:
 https://docker-minecraft-server.readthedocs.io/en/latest/types-and-platforms/mod-platforms/auto-curseforge/

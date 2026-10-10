@@ -1,6 +1,6 @@
 # MOD update review for 0.0.3
 
-Reviewed on 2026-10-10 using the CurseForge Core API and downloaded JAR metadata. Minecraft remains 1.21.1 and NeoForge remains 21.1.243. The client keeps 199 project references and the server keeps its existing 189-project subset.
+Reviewed on 2026-10-10 using the CurseForge Core API and downloaded JAR metadata. Minecraft remains 1.21.1 and NeoForge remains 21.1.243. This original update review covers 199 client references and 189 server references. The subsequent two-MOD addition brought these to 201 / 191; [recipe distribution](coasters-recipes.md) subsequently adds OpenLoader and Prickle for totals of 203 / 193; see [Create addon review](create-addons-0.0.4.md).
 
 Updated 88 client references, including 84 server references. Only available files explicitly tagged for Minecraft 1.21.1 and NeoForge were considered; release files do not move to beta/alpha. Projects already using previews may stay at their existing release channel. Shader references are unchanged. No external dependency projects were added.
 
@@ -126,4 +126,4 @@ The original pack already declares Minecraft ranges excluding 1.21.1 in JEI, Iri
 
 ## User-reported client startup verification (2026-10-10)
 
-The user confirmed successful installation after restarting their PC and then confirmed client startup. The hypothesis that identical pack names prevent installation was withdrawn. The provided log excerpt covers 13:40:14–13:40:17 JST: Minecraft 1.21.1, NeoForge 21.1.243, Java 21.0.12.1, and detection of updated MODs including Sodium 0.8.13, Apotheosis 8.9.0, and Create Aeronautics 1.3.2. No ERROR/FATAL entries appear in this excerpt. Sodium reports its NVIDIA_THREADED_OPTIMIZATIONS_BROKEN workaround. The excerpt ends during MOD discovery, so successful startup is user-reported; it does not independently establish completed loading, world loading, or dedicated-server startup. Private raw logs are not committed.
+The user confirmed successful installation after restarting their PC and then confirmed client startup. The provided log excerpt covers 13:40:14–13:40:17 JST: Minecraft 1.21.1, NeoForge 21.1.243, Java 21.0.12.1, and detection of updated MODs including Sodium 0.8.13, Apotheosis 8.9.0, and Create Aeronautics 1.3.2. No ERROR/FATAL entries appear in this excerpt. Sodium reports its NVIDIA_THREADED_OPTIMIZATIONS_BROKEN workaround. The excerpt ends during MOD discovery, so successful startup is user-reported; it does not independently establish completed loading, world loading, or dedicated-server startup. Private raw logs are not committed.
