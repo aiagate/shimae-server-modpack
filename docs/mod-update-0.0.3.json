@@ -1,0 +1,885 @@
+{
+  "schema_version": 1,
+  "reviewed_date": "2026-10-10",
+  "minecraft_version": "1.21.1",
+  "loader_id": "neoforge-21.1.243",
+  "updates": [
+    {
+      "projectID": 225738,
+      "previousFileID": 7943676,
+      "fileID": 8903254,
+      "fileName": "dummmmmmy-1.21-2.1.2-neoforge.jar",
+      "fileDate": "2026-09-17T12:05:49.663Z",
+      "releaseType": 1,
+      "sha1": "87fb529cbb220a33fedf45a4a6f2269b8e00fffe"
+    },
+    {
+      "projectID": 238222,
+      "previousFileID": 8392171,
+      "fileID": 9068136,
+      "fileName": "jei-1.21.1-neoforge-19.57.0.451.jar",
+      "fileDate": "2026-10-05T09:36:49.37Z",
+      "releaseType": 2,
+      "sha1": "d639d83bf108b258e722a53f40a41a69e83f8ca6"
+    },
+    {
+      "projectID": 243121,
+      "previousFileID": 8420966,
+      "fileID": 9041023,
+      "fileName": "Quark-4.1-486.jar",
+      "fileDate": "2026-10-02T20:58:35Z",
+      "releaseType": 1,
+      "sha1": "5f9ee71ed0b9db3db442d3f6de85c71c21ddd2da"
+    },
+    {
+      "projectID": 245506,
+      "previousFileID": 8138370,
+      "fileID": 9058295,
+      "fileName": "minecolonies-1.1.1403-1.21.1.jar",
+      "fileDate": "2026-10-04T13:05:26.08Z",
+      "releaseType": 1,
+      "sha1": "3be2b5521f45271c77671673e834c57c2296d3e4"
+    },
+    {
+      "projectID": 245755,
+      "previousFileID": 8498220,
+      "fileID": 8969751,
+      "fileName": "waystones-neoforge-1.21.1-21.1.46.jar",
+      "fileDate": "2026-09-25T05:59:59.507Z",
+      "releaseType": 1,
+      "sha1": "75718161662d9ec957ba22e10e497788ec1687ba"
+    },
+    {
+      "projectID": 263420,
+      "previousFileID": 8449819,
+      "fileID": 9067173,
+      "fileName": "xaerominimap-neoforge-1.21.1-26.6.0.jar",
+      "fileDate": "2026-10-05T06:54:48.163Z",
+      "releaseType": 1,
+      "sha1": "551e8e2aa3498b506cc949a74606cdc0380e5e00"
+    },
+    {
+      "projectID": 274259,
+      "previousFileID": 8383188,
+      "fileID": 8512888,
+      "fileName": "carryon-neoforge-1.21.1-2.2.6.13.jar",
+      "fileDate": "2026-07-26T12:40:08.217Z",
+      "releaseType": 1,
+      "sha1": "2ceb0d9284525b6cb2a214c88cf6511cab91f601"
+    },
+    {
+      "projectID": 283644,
+      "previousFileID": 8463693,
+      "fileID": 9077763,
+      "fileName": "Placebo-1.21.1-9.9.3.jar",
+      "fileDate": "2026-10-06T07:37:28.647Z",
+      "releaseType": 1,
+      "sha1": "37b1cf95c23a72caafc5d5c9671bbf1fa62bee14"
+    },
+    {
+      "projectID": 298744,
+      "previousFileID": 8138382,
+      "fileID": 8610535,
+      "fileName": "structurize-1.0.832-1.21.1.jar",
+      "fileDate": "2026-08-09T16:56:29.327Z",
+      "releaseType": 1,
+      "sha1": "be15d6924bcca76bf5ac107e2ce5ac4d948d82e2"
+    },
+    {
+      "projectID": 308663,
+      "previousFileID": 8321970,
+      "fileID": 8988910,
+      "fileName": "SnowRealMagic-1.21.1-NeoForge-12.2.3.jar",
+      "fileDate": "2026-09-27T09:53:45.387Z",
+      "releaseType": 1,
+      "sha1": "5fe839e9c77b3f623c6997c73f5ede0d740d2020"
+    },
+    {
+      "projectID": 312359,
+      "previousFileID": 8004650,
+      "fileID": 9031116,
+      "fileName": "dawnoftimebuilder-neoforge-1.21.1-1.6.7.jar",
+      "fileDate": "2026-10-01T20:48:08.947Z",
+      "releaseType": 1,
+      "sha1": "a0441bb4239d410d92b9a9733cbd0cdf943dd66c"
+    },
+    {
+      "projectID": 313970,
+      "previousFileID": 8525273,
+      "fileID": 8993983,
+      "fileName": "Apotheosis-1.21.1-8.9.0.jar",
+      "fileDate": "2026-09-27T20:12:04.903Z",
+      "releaseType": 1,
+      "sha1": "2d8b59070a221bcc2e3ea08b3b48cbf034b77c71"
+    },
+    {
+      "projectID": 317780,
+      "previousFileID": 8449921,
+      "fileID": 9067277,
+      "fileName": "xaeroworldmap-neoforge-1.21.1-1.47.0.jar",
+      "fileDate": "2026-10-05T07:09:27.77Z",
+      "releaseType": 1,
+      "sha1": "2936c9cb9dfbdab145fe6f1e8ae2c68915246a5f"
+    },
+    {
+      "projectID": 324717,
+      "previousFileID": 7545219,
+      "fileID": 8591319,
+      "fileName": "Jade-1.21.1-NeoForge-15.10.6.jar",
+      "fileDate": "2026-08-06T23:11:53.513Z",
+      "releaseType": 1,
+      "sha1": "88ee316e68900080b017f60c12162e2731924cf8"
+    },
+    {
+      "projectID": 326652,
+      "previousFileID": 8481114,
+      "fileID": 8889050,
+      "fileName": "cupboard-1.21.1-4.2.jar",
+      "fileDate": "2026-09-15T19:17:45.823Z",
+      "releaseType": 1,
+      "sha1": "6c2d786a161f49470dad92b2edaefdac38a1e79b"
+    },
+    {
+      "projectID": 340583,
+      "previousFileID": 6939522,
+      "fileID": 8806071,
+      "fileName": "YungsBetterCaves-1.21.1-NeoForge-3.1.6.jar",
+      "fileDate": "2026-09-04T10:46:24.167Z",
+      "releaseType": 1,
+      "sha1": "6420fdb345b5e33b3a51254799dc281c9c53d3c5"
+    },
+    {
+      "projectID": 378609,
+      "previousFileID": 8501301,
+      "fileID": 8769956,
+      "fileName": "toms_storage-1.21-2.4.2.jar",
+      "fileDate": "2026-08-30T14:31:33.467Z",
+      "releaseType": 1,
+      "sha1": "592af3bc4768c804c4929af16961ca2a1a916942"
+    },
+    {
+      "projectID": 388172,
+      "previousFileID": 8350073,
+      "fileID": 8893490,
+      "fileName": "geckolib-neoforge-1.21.1-4.9.3.jar",
+      "fileDate": "2026-09-16T07:34:13.327Z",
+      "releaseType": 1,
+      "sha1": "5cfe835472a5c5457ae9ac192d9d7b317454d5ac"
+    },
+    {
+      "projectID": 394468,
+      "previousFileID": 8382328,
+      "fileID": 8756580,
+      "fileName": "sodium-neoforge-0.8.13+mc1.21.1.jar",
+      "fileDate": "2026-08-28T20:54:55.687Z",
+      "releaseType": 1,
+      "sha1": "1757289be21ed18db5b0d90703fa3db1b2de5693"
+    },
+    {
+      "projectID": 398521,
+      "previousFileID": 8083481,
+      "fileID": 8765184,
+      "fileName": "FarmersDelight-1.21.1-1.3.4.jar",
+      "fileDate": "2026-08-29T23:17:30.443Z",
+      "releaseType": 1,
+      "sha1": "27675ddfcb8cc37e6ea1ab6c15051c7949d94657"
+    },
+    {
+      "projectID": 404465,
+      "previousFileID": 8438216,
+      "fileID": 9008089,
+      "fileName": "ftb-library-neoforge-2101.1.37.jar",
+      "fileDate": "2026-09-29T10:39:18.093Z",
+      "releaseType": 1,
+      "sha1": "b6e503587afcd678ec257e4abdc6362ff18c2fef"
+    },
+    {
+      "projectID": 412082,
+      "previousFileID": 8501612,
+      "fileID": 8638261,
+      "fileName": "supplementaries-1.21.1-3.8.10-neoforge.jar",
+      "fileDate": "2026-08-13T07:18:20.577Z",
+      "releaseType": 1,
+      "sha1": "0547ca613a6555b16c8c6bcf0c7c829e84f0eb34"
+    },
+    {
+      "projectID": 422301,
+      "previousFileID": 8503096,
+      "fileID": 9083940,
+      "fileName": "sophisticatedbackpacks-1.21.1-3.26.9.2195.jar",
+      "fileDate": "2026-10-06T20:59:17.99Z",
+      "releaseType": 1,
+      "sha1": "a628a502c6faf34bf77139f93bb47c53bea63ffe"
+    },
+    {
+      "projectID": 441647,
+      "previousFileID": 8349218,
+      "fileID": 8780141,
+      "fileName": "FramedBlocks-10.6.2.jar",
+      "fileDate": "2026-08-31T19:11:09.297Z",
+      "releaseType": 1,
+      "sha1": "c86d546e57a6161e77f4acd651e6939b2d6136d5"
+    },
+    {
+      "projectID": 448233,
+      "previousFileID": 8287097,
+      "fileID": 9100286,
+      "fileName": "entityculling-neoforge-1.11.3-mc1.21.1.jar",
+      "fileDate": "2026-10-08T16:51:59.167Z",
+      "releaseType": 1,
+      "sha1": "f122f84f329793675b2625d51b77f990d7de3579"
+    },
+    {
+      "projectID": 454372,
+      "previousFileID": 7783425,
+      "fileID": 9083552,
+      "fileName": "supermartijn642corelib-1.1.25-neoforge-mc1.21.jar",
+      "fileDate": "2026-10-06T20:02:44.72Z",
+      "releaseType": 1,
+      "sha1": "60d45feac8cd2f0b497b013c7fd501b3ae8b6f6d"
+    },
+    {
+      "projectID": 495476,
+      "previousFileID": 8251525,
+      "fileID": 9100581,
+      "fileName": "puzzleslib-v21.1.63-mc1.21.1+neoforge.jar",
+      "fileDate": "2026-10-08T17:22:44.96Z",
+      "releaseType": 1,
+      "sha1": "0bc04f49c8f0420c2db8c45d9329fe8c1919bc85"
+    },
+    {
+      "projectID": 499980,
+      "previousFileID": 8495469,
+      "fileID": 9066398,
+      "fileName": "moonlight-1.21.1-3.7.1-neoforge.jar",
+      "fileDate": "2026-10-05T05:33:44.353Z",
+      "releaseType": 1,
+      "sha1": "19aeef889ec098c3e852183f303de84f185e09f2"
+    },
+    {
+      "projectID": 508933,
+      "previousFileID": 8389148,
+      "fileID": 9004764,
+      "fileName": "DistantHorizons-3.3.3-1.21.1-fabric-neoforge.jar",
+      "fileDate": "2026-09-29T00:02:01.137Z",
+      "releaseType": 1,
+      "sha1": "4357b4d19fab818780c94f0e43dad1cc931634b2"
+    },
+    {
+      "projectID": 521480,
+      "previousFileID": 8274824,
+      "fileID": 8906440,
+      "fileName": "skinlayers3d-neoforge-1.11.3-mc1.21.1.jar",
+      "fileDate": "2026-09-17T20:05:28.567Z",
+      "releaseType": 1,
+      "sha1": "c3ca1000cf0e82608bc4a96067e15a20ecdbec1b"
+    },
+    {
+      "projectID": 531761,
+      "previousFileID": 8424824,
+      "fileID": 8969738,
+      "fileName": "balm-neoforge-1.21.1-21.0.66.jar",
+      "fileDate": "2026-09-25T05:58:33.507Z",
+      "releaseType": 1,
+      "sha1": "dd3606a349f4a3c8fb5bd0ab22905675c02b0d74"
+    },
+    {
+      "projectID": 533097,
+      "previousFileID": 8480771,
+      "fileID": 8896937,
+      "fileName": "c2me-neoforge-mc1.21.1-0.4.0-alpha.0.122.jar",
+      "fileDate": "2026-09-16T16:47:44.287Z",
+      "releaseType": 3,
+      "sha1": "91a9a9b7791fb8a9642752ca6009553a0546c96e"
+    },
+    {
+      "projectID": 551586,
+      "previousFileID": 8364209,
+      "fileID": 8931182,
+      "fileName": "L_Ender's Cataclysm 1.21.1-3.33.jar",
+      "fileDate": "2026-09-20T13:44:42.94Z",
+      "releaseType": 1,
+      "sha1": "f0310277167c82fd16a5c2bab220b5c5c262f133"
+    },
+    {
+      "projectID": 558998,
+      "previousFileID": 8301793,
+      "fileID": 8875899,
+      "fileName": "rechiseled-1.2.6-neoforge-mc1.21.jar",
+      "fileDate": "2026-09-13T23:26:12.557Z",
+      "releaseType": 1,
+      "sha1": "a7ca83d2f99520233bfa9ce769a157fe05201639"
+    },
+    {
+      "projectID": 610492,
+      "previousFileID": 7355747,
+      "fileID": 8955672,
+      "fileName": "another_furniture-neoforge-4.0.3.jar",
+      "fileDate": "2026-09-23T13:57:44.163Z",
+      "releaseType": 1,
+      "sha1": "36e2b147d86c31262bf8f7c571aeea683d71173d"
+    },
+    {
+      "projectID": 618298,
+      "previousFileID": 8503041,
+      "fileID": 9083874,
+      "fileName": "sophisticatedcore-1.21.1-1.5.7.2381.jar",
+      "fileDate": "2026-10-06T20:50:02.45Z",
+      "releaseType": 1,
+      "sha1": "eb40e4ddea0c5f6e5f1b206ad18184647131cd9a"
+    },
+    {
+      "projectID": 619320,
+      "previousFileID": 8503122,
+      "fileID": 9083992,
+      "fileName": "sophisticatedstorage-1.21.1-1.6.2.2159.jar",
+      "fileDate": "2026-10-06T21:05:50.973Z",
+      "releaseType": 1,
+      "sha1": "46ada373bf6ac03dcc4c0a1d76e4a7160a395502"
+    },
+    {
+      "projectID": 656977,
+      "previousFileID": 8370969,
+      "fileID": 8970306,
+      "fileName": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
+      "fileDate": "2026-09-25T08:09:49.35Z",
+      "releaseType": 1,
+      "sha1": "6759fa57891f731e54f865c13ffa0601a829b76a"
+    },
+    {
+      "projectID": 676721,
+      "previousFileID": 8240058,
+      "fileID": 8763471,
+      "fileName": "create-aeronautics-bundled-1.21.1-1.3.2.jar",
+      "fileDate": "2026-08-29T18:45:11.323Z",
+      "releaseType": 1,
+      "sha1": "ddbe9cbc25e8f663218aa1e9fdfc4b99f0e11e4b"
+    },
+    {
+      "projectID": 686836,
+      "previousFileID": 8360847,
+      "fileID": 8855043,
+      "fileName": "tectonic-3.0.28-neoforge-21.1.jar",
+      "fileDate": "2026-09-11T03:42:58.09Z",
+      "releaseType": 1,
+      "sha1": "db15156eec4320c2997c4dd4948119472de01224"
+    },
+    {
+      "projectID": 790626,
+      "previousFileID": 8459650,
+      "fileID": 9101836,
+      "fileName": "modernfix-neoforge-5.27.26+mc1.21.1.jar",
+      "fileDate": "2026-10-08T20:28:02.443Z",
+      "releaseType": 1,
+      "sha1": "69d468b70e53f6a014c778a81116a41a38fbab33"
+    },
+    {
+      "projectID": 817423,
+      "previousFileID": 8367232,
+      "fileID": 9107208,
+      "fileName": "azurelib-neo-1.21.1-3.1.19.jar",
+      "fileDate": "2026-10-09T11:25:11.35Z",
+      "releaseType": 1,
+      "sha1": "57e3de94d68bd60c922526fd29555b78099ca12c"
+    },
+    {
+      "projectID": 820977,
+      "previousFileID": 8221844,
+      "fileID": 9104646,
+      "fileName": "create-central-kitchen-2.6.2b.jar",
+      "fileDate": "2026-10-09T04:14:40.647Z",
+      "releaseType": 1,
+      "sha1": "796355e592455c84c4eee8b7cd998734a9500c0d"
+    },
+    {
+      "projectID": 827507,
+      "previousFileID": 8422813,
+      "fileID": 8782133,
+      "fileName": "stylecolonies-1.15.59-1.21.1.jar",
+      "fileDate": "2026-09-01T01:54:55.87Z",
+      "releaseType": 1,
+      "sha1": "6159c38d7f46226f6a40cdd4bcae91cee0c3427d"
+    },
+    {
+      "projectID": 854949,
+      "previousFileID": 8479774,
+      "fileID": 9070353,
+      "fileName": "fusion-1.3.16-neoforge-mc1.21.1.jar",
+      "fileDate": "2026-10-05T15:17:08.537Z",
+      "releaseType": 1,
+      "sha1": "c3cd7c2718583aa5a12e8502c6b92e050bad0c19"
+    },
+    {
+      "projectID": 896746,
+      "previousFileID": 8415430,
+      "fileID": 8825641,
+      "fileName": "amendments-1.21-2.1.10-neoforge.jar",
+      "fileDate": "2026-09-06T21:11:30.2Z",
+      "releaseType": 1,
+      "sha1": "d0cae2882177b7ad285021b48c128ddcc7022464"
+    },
+    {
+      "projectID": 898963,
+      "previousFileID": 8502288,
+      "fileID": 9006294,
+      "fileName": "ApothicAttributes-1.21.1-2.11.0.jar",
+      "fileDate": "2026-09-29T04:49:29.267Z",
+      "releaseType": 1,
+      "sha1": "7ff0e452e10cb582c188626a413037e63db9ca04"
+    },
+    {
+      "projectID": 936015,
+      "previousFileID": 8378498,
+      "fileID": 8944659,
+      "fileName": "lithostitched-1.8.0-neoforge-21.1.jar",
+      "fileDate": "2026-09-22T03:18:50.19Z",
+      "releaseType": 1,
+      "sha1": "fe7eb612a0fa0c41ce94d914162d298755bb25a3"
+    },
+    {
+      "projectID": 947914,
+      "previousFileID": 8299240,
+      "fileID": 8777573,
+      "fileName": "create_connected-1.3.3-mc1.21.1.jar",
+      "fileDate": "2026-08-31T12:47:12.127Z",
+      "releaseType": 1,
+      "sha1": "72c3653116562dbab38dac123f8effc73c747cc9"
+    },
+    {
+      "projectID": 960209,
+      "previousFileID": 7757180,
+      "fileID": 8729162,
+      "fileName": "valarian_conquest-4.2.2-neoforge-1.21.1.jar",
+      "fileDate": "2026-08-25T05:53:42.053Z",
+      "releaseType": 1,
+      "sha1": "c0342b654349dae9570413c0f8e47038b9ab5f35"
+    },
+    {
+      "projectID": 968398,
+      "previousFileID": 7251823,
+      "fileID": 8822348,
+      "fileName": "copycats-3.0.9+mc.1.21.1-neoforge.jar",
+      "fileDate": "2026-09-06T13:38:10.13Z",
+      "releaseType": 1,
+      "sha1": "74de17876c43f5f780bac478b9f9eb11e687b8d7"
+    },
+    {
+      "projectID": 1007872,
+      "previousFileID": 8281653,
+      "fileID": 8608393,
+      "fileName": "create_ltab-4.1.0.jar",
+      "fileDate": "2026-08-09T10:54:50.093Z",
+      "releaseType": 1,
+      "sha1": "c5725961ba8585693a84cf06becb21e8f4b13f11"
+    },
+    {
+      "projectID": 1015100,
+      "previousFileID": 6715463,
+      "fileID": 8894736,
+      "fileName": "YungsApi-1.21.1-NeoForge-5.1.9.jar",
+      "fileDate": "2026-09-16T11:24:30.02Z",
+      "releaseType": 1,
+      "sha1": "2c4b740c8ad27bbcb2a21b85b64f011b809aed91"
+    },
+    {
+      "projectID": 1063926,
+      "previousFileID": 8469450,
+      "fileID": 9095862,
+      "fileName": "ApothicEnchanting-1.21.1-1.6.4.jar",
+      "fileDate": "2026-10-08T04:28:29.19Z",
+      "releaseType": 1,
+      "sha1": "d88e75b60e97dae8054ee10f3a92aa2bb812b8b9"
+    },
+    {
+      "projectID": 1140577,
+      "previousFileID": 8271740,
+      "fileID": 8734901,
+      "fileName": "cable_facades-1.21.1-NeoForge-2.1.4.jar",
+      "fileDate": "2026-08-25T22:07:15.057Z",
+      "releaseType": 1,
+      "sha1": "ab793d3c2dbb5a492f2bee15d75f3a45011c4578"
+    },
+    {
+      "projectID": 1216624,
+      "previousFileID": 8219463,
+      "fileID": 8900055,
+      "fileName": "CreateDragonsPlus-1.11.9.jar",
+      "fileDate": "2026-09-17T01:16:14.733Z",
+      "releaseType": 1,
+      "sha1": "67ffcb61207a7dbc6b1e70f0473ddbacb19d44eb"
+    },
+    {
+      "projectID": 1238567,
+      "previousFileID": 8398818,
+      "fileID": 9074505,
+      "fileName": "sophisticatedbackpackscreateintegration-1.21.1-0.2.2.188.jar",
+      "fileDate": "2026-10-05T23:35:39.86Z",
+      "releaseType": 1,
+      "sha1": "f44daf63773198f1cf6f46ca559d516b9a4dc322"
+    },
+    {
+      "projectID": 1263531,
+      "previousFileID": 8415125,
+      "fileID": 8956338,
+      "fileName": "underlay-1.0.5-neoforge-mc1.21.1.jar",
+      "fileDate": "2026-09-23T15:15:59.123Z",
+      "releaseType": 1,
+      "sha1": "c17597fddaace75943beb62ccf9cf07e3ad0532a"
+    },
+    {
+      "projectID": 1281310,
+      "previousFileID": 8316937,
+      "fileID": 9020151,
+      "fileName": "jauml-neoforge-1.21.1-2.3.1.jar",
+      "fileDate": "2026-09-30T17:09:22.35Z",
+      "releaseType": 1,
+      "sha1": "0d32e5c186b5700ebe78e15fdd951c645397833f"
+    },
+    {
+      "projectID": 1281336,
+      "previousFileID": 8281768,
+      "fileID": 8541877,
+      "fileName": "create_hypertube-0.6.0-NEOFORGE.jar",
+      "fileDate": "2026-07-30T17:05:37.837Z",
+      "releaseType": 1,
+      "sha1": "8004b4b3959364609906ea4d7bf409add879a222"
+    },
+    {
+      "projectID": 1307924,
+      "previousFileID": 8235643,
+      "fileID": 8852736,
+      "fileName": "immersive_gateways-neoforge-0.0.7.jar",
+      "fileDate": "2026-09-10T19:16:03.17Z",
+      "releaseType": 1,
+      "sha1": "98ce93d2723b64fb7774e9a341239898bcd7f5e8"
+    },
+    {
+      "projectID": 1312371,
+      "previousFileID": 8263584,
+      "fileID": 9043865,
+      "fileName": "sable-neoforge-1.21.1-2.0.6.jar",
+      "fileDate": "2026-10-03T04:18:00.617Z",
+      "releaseType": 1,
+      "sha1": "cf46f7e8c1511f170abcdbee739944f0540549bf"
+    },
+    {
+      "projectID": 1317252,
+      "previousFileID": 7471348,
+      "fileID": 8723463,
+      "fileName": "create_bb-1.0.8-1.21.1.jar",
+      "fileDate": "2026-08-24T11:39:16.083Z",
+      "releaseType": 1,
+      "sha1": "59220d82cf962773e26778fc24c454e761368092"
+    },
+    {
+      "projectID": 1332665,
+      "previousFileID": 8425170,
+      "fileID": 8956260,
+      "fileName": "createcolonies-2.0.7.jar",
+      "fileDate": "2026-09-23T15:02:47.03Z",
+      "releaseType": 1,
+      "sha1": "7531c2a1aedf5dffa2389a46eab950a99e897e4f"
+    },
+    {
+      "projectID": 1337167,
+      "previousFileID": 8463709,
+      "fileID": 9047179,
+      "fileName": "MoogsStructureLib-neoforge-1.21.1-3.4.2.jar",
+      "fileDate": "2026-10-03T13:07:51.083Z",
+      "releaseType": 1,
+      "sha1": "c379b8d5dc1a4b1e8987da1052d6b4de81354d72"
+    },
+    {
+      "projectID": 1426984,
+      "previousFileID": 8333129,
+      "fileID": 9113896,
+      "fileName": "VS-Sable-HoseConnectors-0.1.9-1.21.1.jar",
+      "fileDate": "2026-10-10T00:59:26.167Z",
+      "releaseType": 1,
+      "sha1": "938c362e743dd6b447ee29ccf9b7c55c442cd4ef"
+    },
+    {
+      "projectID": 1443327,
+      "previousFileID": 8345582,
+      "fileID": 9058907,
+      "fileName": "electroenergetics-1.21.1-1.1.3.jar",
+      "fileDate": "2026-10-04T14:06:36.993Z",
+      "releaseType": 1,
+      "sha1": "b8225d9ec60b5afaba8809e0bd96f224a0560e10"
+    },
+    {
+      "projectID": 1489732,
+      "previousFileID": 8470471,
+      "fileID": 8853805,
+      "fileName": "CBCmoreshells-1.4.0.jar",
+      "fileDate": "2026-09-10T22:22:54.67Z",
+      "releaseType": 1,
+      "sha1": "da992f1b16d4a9b4cfa2e7ff0f7c8222d4b153a7"
+    },
+    {
+      "projectID": 1499714,
+      "previousFileID": 8006651,
+      "fileID": 8737899,
+      "fileName": "muchmoredungeons-neoforge-1.21.1-1.2.0.jar",
+      "fileDate": "2026-08-26T09:28:28.547Z",
+      "releaseType": 1,
+      "sha1": "4ed0aa4f751db9156b9b6fab1c23293e7a597365"
+    },
+    {
+      "projectID": 1511282,
+      "previousFileID": 8376124,
+      "fileID": 9074215,
+      "fileName": "create_stats-1.15.0.jar",
+      "fileDate": "2026-10-05T22:54:49.873Z",
+      "releaseType": 1,
+      "sha1": "051700c5a6c7543ace438628f19b53dc9a8d62c6"
+    },
+    {
+      "projectID": 1521349,
+      "previousFileID": 8466588,
+      "fileID": 8701394,
+      "fileName": "create_aeronautics_toolgun-0.3.6.jar",
+      "fileDate": "2026-08-21T18:14:57.663Z",
+      "releaseType": 1,
+      "sha1": "81103160768a52a5bc7fffb5fadc1c441883d5d5"
+    },
+    {
+      "projectID": 1522473,
+      "previousFileID": 8409091,
+      "fileID": 8743051,
+      "fileName": "aeroworks-1.5.0.jar",
+      "fileDate": "2026-08-27T00:04:58.133Z",
+      "releaseType": 1,
+      "sha1": "a14ff1c30f3c824b36ee6e2e711a47fd537a5c5f"
+    },
+    {
+      "projectID": 1524471,
+      "previousFileID": 8404634,
+      "fileID": 8632751,
+      "fileName": "waystonessable-1.0.7.jar",
+      "fileDate": "2026-08-12T13:46:43.42Z",
+      "releaseType": 1,
+      "sha1": "cebbc2cf9a7a8b2255caff04f2109d9611b28091"
+    },
+    {
+      "projectID": 1526086,
+      "previousFileID": 8380829,
+      "fileID": 8849438,
+      "fileName": "pipesnphysics-3.2.1.jar",
+      "fileDate": "2026-09-10T09:16:21.847Z",
+      "releaseType": 1,
+      "sha1": "bfcee82abd51ede6f7bf3e7705e166abb982a70f"
+    },
+    {
+      "projectID": 1528764,
+      "previousFileID": 8464450,
+      "fileID": 8976817,
+      "fileName": "climbable_ropes-2.1.4.jar",
+      "fileDate": "2026-09-26T00:48:33.817Z",
+      "releaseType": 1,
+      "sha1": "7b830925ecde368f0848470d52d840f6b74a6de8"
+    },
+    {
+      "projectID": 1529882,
+      "previousFileID": 8368780,
+      "fileID": 8618590,
+      "fileName": "create_aeronautics_throwable_rope_connector-0.4.3.jar",
+      "fileDate": "2026-08-10T19:04:04.087Z",
+      "releaseType": 1,
+      "sha1": "63fcbbc960461d42a59b417665fb938c79919514"
+    },
+    {
+      "projectID": 1532314,
+      "previousFileID": 8083393,
+      "fileID": 8592815,
+      "fileName": "decilib-neoforge-1.1.5+1.21.1.jar",
+      "fileDate": "2026-08-07T05:22:48.683Z",
+      "releaseType": 1,
+      "sha1": "40f65308714425349d7622a87e94db8780aa1aa5"
+    },
+    {
+      "projectID": 1533137,
+      "previousFileID": 8268622,
+      "fileID": 9042070,
+      "fileName": "create_submarine-3.3.0.jar",
+      "fileDate": "2026-10-02T23:24:43.093Z",
+      "releaseType": 1,
+      "sha1": "b1aaaf64423d9e80aa750c71de426f6aaa33989e"
+    },
+    {
+      "projectID": 1533254,
+      "previousFileID": 8481512,
+      "fileID": 8881861,
+      "fileName": "gpushift-universal-1.21.1-1.2.8-bugfix.2.jar",
+      "fileDate": "2026-09-14T19:26:03.25Z",
+      "releaseType": 1,
+      "sha1": "07b6d30462481ed712ee9027f8c679c6e8733772"
+    },
+    {
+      "projectID": 1533966,
+      "previousFileID": 8050151,
+      "fileID": 8638957,
+      "fileName": "illagerstructures-neoforge-1.21.1-0.1.2.jar",
+      "fileDate": "2026-08-13T09:49:08.123Z",
+      "releaseType": 1,
+      "sha1": "7d74c301c84d2d9e5e21b531bfdebe6d800248f1"
+    },
+    {
+      "projectID": 1534320,
+      "previousFileID": 8211494,
+      "fileID": 8641826,
+      "fileName": "trial_guardians-neoforge-2.0.0+1.21.1.jar",
+      "fileDate": "2026-08-13T17:58:07.347Z",
+      "releaseType": 1,
+      "sha1": "85db7cb4f5ec32dbe2ae03482b75736d26609c9b"
+    },
+    {
+      "projectID": 1537420,
+      "previousFileID": 8348610,
+      "fileID": 8673342,
+      "fileName": "create_aeronautics_automated_logistics-0.6.2.jar",
+      "fileDate": "2026-08-17T23:23:32.513Z",
+      "releaseType": 1,
+      "sha1": "1954f5c4f72620942851241bd18217197ed59b46"
+    },
+    {
+      "projectID": 1537945,
+      "previousFileID": 8486860,
+      "fileID": 9110305,
+      "fileName": "gadgets-and-gizmos-bundled-V1.2.8.jar",
+      "fileDate": "2026-10-09T17:46:38.273Z",
+      "releaseType": 1,
+      "sha1": "8496c80bca7a1334e827aa00bde900fe820fb7e4"
+    },
+    {
+      "projectID": 1542803,
+      "previousFileID": 8094325,
+      "fileID": 8661797,
+      "fileName": "MoogsVoyagerStructuresIntegrated-neoforge-1.21.1-2.0.1.jar",
+      "fileDate": "2026-08-16T11:43:04.85Z",
+      "releaseType": 1,
+      "sha1": "8e53e59825263a1d51e976e4c6c63423e7615c2c"
+    },
+    {
+      "projectID": 1548056,
+      "previousFileID": 8264158,
+      "fileID": 8790451,
+      "fileName": "create_aeronautics_transmission_linkage-0.2.8.jar",
+      "fileDate": "2026-09-02T06:15:13.983Z",
+      "releaseType": 1,
+      "sha1": "bccaf90652905ae5f28dcc7e1134099d188ca020"
+    },
+    {
+      "projectID": 1553375,
+      "previousFileID": 8241900,
+      "fileID": 8883036,
+      "fileName": "cataclysm_rise-1.1.3.jar",
+      "fileDate": "2026-09-14T23:07:25.407Z",
+      "releaseType": 1,
+      "sha1": "786b86f3499d65aaa468933cd62d68025025e19f"
+    },
+    {
+      "projectID": 1571184,
+      "previousFileID": 8388122,
+      "fileID": 8967641,
+      "fileName": "sab_tfmg_compat-1.1.0.jar",
+      "fileDate": "2026-09-24T22:27:32.157Z",
+      "releaseType": 1,
+      "sha1": "ed4d60c164fa45951d158fe1beac5b3e95407486"
+    },
+    {
+      "projectID": 1591852,
+      "previousFileID": 8479554,
+      "fileID": 8753475,
+      "fileName": "vss-0.2.12-neoforge-1.21.1.jar",
+      "fileDate": "2026-08-28T11:38:14.067Z",
+      "releaseType": 1,
+      "sha1": "98e323dc2e86d0b8a9a3738b171fb4c4e35d3ffa"
+    }
+  ],
+  "baseline_metadata_warnings": [
+    [
+      "238222",
+      "jei",
+      "minecraft",
+      "[1.21, 1.21.1)",
+      "1.21.1",
+      "platform",
+      "CLIENT"
+    ],
+    [
+      "455508",
+      "iris",
+      "minecraft",
+      "[1.21,1.21.1)",
+      "1.21.1",
+      "platform",
+      "CLIENT"
+    ],
+    [
+      "900364",
+      "towntalk",
+      "minecraft",
+      "[1.21,1.21z)",
+      "1.21.1",
+      "platform",
+      "CLIENT"
+    ],
+    [
+      "1320115",
+      "create_sophback_compat",
+      "minecraft",
+      "[1.20.1,1.21.1)",
+      "1.21.1",
+      "platform",
+      "CLIENT"
+    ],
+    [
+      "1567776",
+      "adventure_platform_neoforge",
+      "minecraft",
+      "[1.21,1.21.1)",
+      "1.21.1",
+      "platform",
+      "CLIENT"
+    ],
+    [
+      "238222",
+      "jei",
+      "minecraft",
+      "[1.21, 1.21.1)",
+      "1.21.1",
+      "platform",
+      "SERVER"
+    ],
+    [
+      "900364",
+      "towntalk",
+      "minecraft",
+      "[1.21,1.21z)",
+      "1.21.1",
+      "platform",
+      "SERVER"
+    ],
+    [
+      "1320115",
+      "create_sophback_compat",
+      "minecraft",
+      "[1.20.1,1.21.1)",
+      "1.21.1",
+      "platform",
+      "SERVER"
+    ],
+    [
+      "1567776",
+      "adventure_platform_neoforge",
+      "minecraft",
+      "[1.21,1.21.1)",
+      "1.21.1",
+      "platform",
+      "SERVER"
+    ]
+  ],
+  "new_metadata_warnings": [],
+  "jarjar_conflicts": []
+}
