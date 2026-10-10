@@ -10,7 +10,7 @@ Minecraft 1.21.1 / NeoForge 21.1.243。リポジトリの固定MOD参照と設�
 - `pack/overrides/`：配布する設定・ライセンス文書。world、接続先、パスワード、履歴を入れません。
 - `CHANGELOG.md`：今回の変更、導入方式、動作確認の範囲。
 
-0.0.2への移行ではclient199参照、server189参照、client override320ファイル（設定318＋ライセンス2）、server設定309を保持しています。App由来0.0.1の固定参照・設定SHAと完全照合します。旧Appの原本参照・設定ポリシー・準備記録は[`history/0.0.1-app/`](history/0.0.1-app/)に保持し、通常ビルドはそこを参照しません。初回移行の参照・設定SHAは`pack/migration.json`で照合します。
+0.0.2への移行ではclient199参照、server189参照、client override320ファイル（設定318＋ライセンス2）、server設定309を保持しています。App由来0.0.1の固定参照・設定SHAと完全照合します。旧Appの出所・設定ポリシー・準備記録は[`CHANGELOG.md`](CHANGELOG.md#001-app-migration-evidence)に統合しています。元のJSON記録は同節の固定Git snapshotから参照できます。通常ビルドはこれらの履歴を参照しません。初回移行の参照・設定SHAは`pack/migration.json`で照合します。
 
 ## 公開する操作
 
@@ -50,7 +50,7 @@ clientにはMOD/Shaderを199固定IDで参照するmanifestと設定を入れ、
 
 [公式審査規約](https://support.curseforge.com/support/solutions/articles/9000197279-project-and-modpack-moderation-policies)のApp形式・manifest編集制限を踏まえ、標準packwizで新規生成します。App出力を加工して出所を偽装しません。本packの0.0.2はこの方式で公開済みですが、次版や動作の保証とは分けて扱います。
 
-MODの実機動作、全依存グラフ、審査受理は静的検査の範囲外です。自作部分はMIT、第三者のMOD/Shader/設定コメント等の権利は各作者のままです。LICENSEとLICENSE-SCOPE.txtを参照してください。
+MODの実機動作、全依存グラフ、審査受理は静的検査の範囲外です。自作部分はMIT、第三者のMOD/Shader/設定コメント等の権利は各作者のままです。自作の設定変更・リリーススクリプト・文書へのMITライセンスは[`LICENSE`](LICENSE)を参照してください。第三者が生成した既定設定本文・コメント等をMITで再ライセンスするものではありません。参照するMOD/Shaderの利用条件は生成されるmodlist.htmlと各原作者のライセンスに従います。配布用の適用範囲説明は[`pack/overrides/THIRD-PARTY-NOTICES.txt`](pack/overrides/THIRD-PARTY-NOTICES.txt)に保持しています。
 
 ## 公開後の検証
 
@@ -64,6 +64,6 @@ MODの実機動作、全依存グラフ、審査受理は静的検査の範囲�
 
 ローカル検証は `python3 -m unittest discover -s tests -v`。固定packwizを用意し、`python3 scripts/native_pack.py --output <新しい出力先> --packwiz <binary>`で両ZIPを生成します。CIは同じビルドを独立に2回実行し、参照と設定の内容一致を確認してレビュー用artifactを保存します。実提出を伴わないCIにUpload tokenは渡しません。
 
-[`history/0.0.2-submission.md`](history/0.0.2-submission.md)に公開済み版の受付ID・SHA・回復経緯を記録しています。完了した0.0.2専用の回復操作は退役しました。現行の`server_only`、公開済み親のバイト照合、immutable claim/result、失敗receiptは保持しています。受付不明のclaimがあれば再送せず、作者画面とreceiptを確認します。
+[`CHANGELOG.md`](CHANGELOG.md#002-submission-evidence)に公開済み版の受付ID・SHA・回復経緯を記録しています。完了した0.0.2専用の回復操作は退役しました。現行の`server_only`、公開済み親のバイト照合、immutable claim/result、失敗receiptは保持しています。受付不明のclaimがあれば再送せず、作者画面とreceiptを確認します。
 
 Gitには配布ZIP・MOD JAR・私的な運用資料を入れません。公開済みRelease/ZIP、App原本、監査receipt、ローカル運用資料はcleanupの対象外です。
