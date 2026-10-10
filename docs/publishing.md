@@ -12,7 +12,7 @@ CurseForge project `1733082` への client / server 提出と公開確認の手�
 
 main限定の手動workflowです。タグpushだけでは投稿しません。投稿jobは既存`curseforge` Environmentを使います。`curseforge` Environment に required reviewers を設定してください。提出を要求した run は、レビュアー設定がない場合や設定を取得できない場合、preflight で停止します。承認は成果物の確認後に行います。`submit=false` は提出しない独立した検証用で、その成果物を後続の別 run へ引き継ぐ用途には使いません。
 
-同じrunのartifact IDを固定し、両ZIPとsource SHAを再検証します。GET audit通過後に検証済みZIPをGitHub Releaseへ保存し、client受付IDを`parentFileID`としてServer Packを提出します。新しいタグ`v<version>`はそのmain commitに作ります。既存同名assetはSHA/サイズ一致時だけ再利用し、上書きしません。API受付・審査・公開・Server Pack区分は別の状態です。0.0.2 では、Upload API の parentFileID 指定だけでは一般の Additional File として受理されました。公式Upload APIにServer Pack区分の設定方法は記載されていないため、未確認の`isServerPack`等は送りません。作者画面で設定できることを実際に確認しています。
+同じrunのartifact IDを固定し、両ZIPとsource SHAを再検証します。GET audit通過後に検証済みZIPをGitHub Releaseへ保存し、client受付IDを`parentFileID`としてServer Packを提出します。新しいタグ`v<version>`はそのmain commitに作ります。既存同名assetはSHA/サイズ一致時だけ再利用し、上書きしません。API受付・審査・公開・Server Pack区分は別の状態です。Server Pack区分は作者画面で設定します。Upload APIの文書にないフィールドは使用しません。
 
 POST前claimと受付後resultをReleaseへ上書きなしで記録します。結果のあるファイルを再送せず、claimだけなら新しい手動起動でも停止します。`mode=server_only`で既存の親を使えます。外部で提出済みの親は`existing_client_file_id`を指定すると、公開状態と公式CDNの全SHAが一致した場合だけ採用します。受付不明は作者画面/receiptを確認してから対応し、ファイル削除や盲目的な再投稿はしません。
 
@@ -24,7 +24,7 @@ POST前claimと受付後resultをReleaseへ上書きなしで記録します。�
 
 [作者 Upload token](https://authors.curseforge.com/#/settings/api-tokens)は GitHub の `curseforge` Environment の secret `CURSEFORGE_API_TOKEN` に設定します。実提出には Environment variable `CURSEFORGE_SUBMISSION_ENABLED=true` も必要です。`X-Api-Token`を使い、Core APIのキーとは区別します。
 
-[公式審査規約](https://support.curseforge.com/support/solutions/articles/9000197279-project-and-modpack-moderation-policies)のApp形式・manifest編集制限を踏まえ、標準packwizで新規生成します。App出力を加工して出所を偽装しません。本packの0.0.2はこの方式で公開済みですが、次版や動作の保証とは分けて扱います。
+[公式審査規約](https://support.curseforge.com/support/solutions/articles/9000197279-project-and-modpack-moderation-policies)のApp形式・manifest編集制限を踏まえ、標準packwizで新規生成します。
 
 MODの実機動作、全依存グラフ、審査受理は静的検査の範囲外です。自作部分はMIT、第三者のMOD/Shader/設定コメント等の権利は各作者のままです。[LICENSE](../LICENSE)と[配布物のライセンス通知](../pack/overrides/THIRD-PARTY-NOTICES.txt)を参照してください。
 
@@ -34,4 +34,4 @@ MODの実機動作、全依存グラフ、審査受理は静的検査の範囲�
 
 審査待ちは最大10分読み取りで待ちます。その時点でまだ審査中ならreceiptは `publication_complete: false` の待機状態です。workflowが成功しただけでは公開完了と判断しません。審査後に区分を設定して専用workflowを手動起動し、完了receiptを確認します。Approvedでも区分未設定、親ID不一致、SHA不一致、型の判断が曖昧なら検証を失敗させます。`submit=false`だけの通常preflightは自動検証を起動しません。
 
-0.0.2 の受付 ID、区分設定、公開確認の根拠は [提出記録](../CHANGELOG.md#002-submission-evidence)にあります。
+0.0.2 の受付 ID、区分設定、公開確認の根拠は [提出記録](release-history.md#002-submission-evidence)にあります。

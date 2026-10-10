@@ -1,10 +1,10 @@
 # サーバー導入手順
 
-Server Pack は Docker Compose と [itzg AUTO_CURSEFORGE](https://docker-minecraft-server.readthedocs.io/en/latest/types-and-platforms/mod-platforms/auto-curseforge/) で MOD と NeoForge を取得するための ZIP です。Docker、Docker Compose、MOD をダウンロードできるネットワークが必要です。実機起動試験は未実施のため、最初は新しいデータ領域で確認してください。
+Server Pack は Docker Compose と [itzg AUTO_CURSEFORGE](https://docker-minecraft-server.readthedocs.io/en/latest/types-and-platforms/mod-platforms/auto-curseforge/) で MOD と NeoForge を取得するための ZIP です。Docker、Docker Compose、MOD をダウンロードできるネットワークが必要です。初回導入には新しいデータ領域を使用してください。
 
 ## 新しいサーバーを導入する
 
-1. 新しい空フォルダに `shimae-server-modpack-0.0.2-serverpack.zip` をコピーし、展開します。インストーラーが ZIP を読むため、元の ZIP は `compose.yaml` と同じ場所に残します。
+1. 新しい空フォルダに 使用する版の `shimae-server-modpack-<version>-serverpack.zip` をコピーし、展開します。インストーラーが ZIP を読むため、元の ZIP は `compose.yaml` と同じ場所に残します。
 2. 同じ場所に空の `downloads` ディレクトリを作ります。
 3. [Minecraft EULA](https://www.minecraft.net/eula) を確認し、同意する場合は `.env` に `EULA=true` を記入します。必要に応じて `MEMORY=4G`、`MC_PORT=25565` を指定します。4G は既定値で、必要メモリの実測値ではありません。
 4. 展開先で `docker compose up -d` を実行します。データは Compose の名前付き volume `server-data` に保存されます。
