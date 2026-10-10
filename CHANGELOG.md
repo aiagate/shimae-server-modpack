@@ -1,11 +1,14 @@
-# Shimae Server Modpack 0.0.2
+# Changelog
 
-- Build the client with pinned packwiz from repository-owned references/settings. The 199 pinned references and existing settings are unchanged.
-- Replace the bundled server distribution with a lightweight manifest-based installer input for standard itzg AUTO_CURSEFORGE: 189 server references, 309 settings, no MOD JARs.
-- Generate, verify and publish client/Additional Server Pack through Actions with durable duplicate prevention.
-- Minecraft 1.21.1 / NeoForge 21.1.243. Runtime testing of this installer distribution has not been performed.
+## 0.0.2
+
+- クライアント ZIP をリポジトリ内の固定参照・設定から packwiz で生成する方式へ変更。199 件の参照と既存設定を維持。
+- サーバー配布を標準の itzg AUTO_CURSEFORGE で導入する manifest ベースの ZIP へ変更。サーバー用参照 189 件、設定 309 ファイル。MOD JAR は同梱しない。
+- Actions による client / server の生成・検証・提出と、重複提出を防ぐ記録を導入。
+- Minecraft 1.21.1 / NeoForge 21.1.243 を使用。この導入方式の実機起動試験は未実施。
 
 ## 0.0.2 submission evidence
+
 
 The published artifacts and receipts remain at their original locations.
 
@@ -24,17 +27,16 @@ cleanup. Its exact implementation remains in Git at commit
 is in publish_pair.py (server_only, existing parent verification, durable
 claims/results, failure receipts). Unknown acceptance never authorizes a retry.
 
-## Previous release
-
-# Shimae Server Modpack 0.0.1
+## 0.0.1
 
 - Minecraft 1.21.1 / NeoForge 21.1.243、クライアント199参照。App出力のmanifestとmodlistを維持。
 - TFC、TFC Offset Smoker、Bonsaiは収録せず、PatchouliとApotheosis関連ライブラリを保持。
 - 新しいApp出力の有効な設定を採用。Apotheosis/Enchanting連携設定3件と既存設定14件の差分を保持。
 - 提出候補では不要なベンチマーク、機器fingerprint、Chunky作業状態、バックアップ、Bonsai残存設定11件を除外し、ライセンス文書2件を付属。
-- 原本ZIPは変更せず、manifest、modlist、残した設定本文はバイト一致する整理コピーを使用。
+- App 出力の manifest、modlist、配布対象に残した設定本文を維持。
 
 ## 0.0.1 App migration evidence
+
 
 Historical provenance, preparation and review records are consolidated here.
 The complete original JSON records, including reference ordering, App-specific
