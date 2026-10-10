@@ -22,8 +22,10 @@ packwizは`v0.0.0-20260218225342-dfd8b68a4796`、Goは1.27.2で固定し、コ�
 
 ローカル検証は `python3 -m unittest discover -s tests -v`。固定packwizを用意し、`python3 scripts/native_pack.py --output <新しい出力先> --packwiz <binary>`で両ZIPを生成します。CIは同じビルドを独立に2回実行し、参照と設定の内容一致を確認してレビュー用artifactを保存します。実提出を伴わないCIにUpload tokenは渡しません。
 
+Actions の表示名は `CI / Validate`、`Release / Submit`、`Release / Verify publication` です。Validate は main への push と PR で実行し、同じ PR・ブランチの古い検証はキャンセルします。テスト、固定 Go / packwiz の準備、配布バイナリの混入検査、ZIP 生成・検証は `.github/actions/build-pack/action.yml` にまとめ、Validate と Submit の preflight で共有します。独立した再ビルド比較は Validate で行います。Submit は同じ run で生成した ZIP を Environment の承認後に提出し、成功した提出 job の後だけ公開確認を呼び出します。単独の Diagnose workflow は廃止し、提出直前の GET audit は Submit 内に保持します。
+
 [0.0.2 の提出記録](../CHANGELOG.md#002-submission-evidence)に公開済み版の受付ID・SHA・回復経緯を記録しています。完了した0.0.2専用の回復操作は退役しました。現行の`server_only`、公開済み親のバイト照合、immutable claim/result、失敗receiptは保持しています。受付不明のclaimがあれば再送せず、作者画面とreceiptを確認します。
 
 Gitには配布ZIP・MOD JAR・私的な運用資料を入れません。公開済みRelease/ZIP、App原本、監査receipt、ローカル運用資料はcleanupの対象外です。
 
-コマンドはリポジトリのルートで実行します。固定 packwiz の用意は `.github/workflows/validate.yml` を参照してください。配布物の導入は [サーバー導入手順](server-setup.md)、提出は [公開手順](publishing.md)で扱います。
+コマンドはリポジトリのルートで実行します。固定 packwiz の用意は `.github/actions/build-pack/action.yml` を参照してください。配布物の導入は [サーバー導入手順](server-setup.md)、提出は [公開手順](publishing.md)で扱います。
