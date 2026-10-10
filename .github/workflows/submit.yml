@@ -28,6 +28,9 @@ concurrency:
 jobs:
   preflight:
     if: github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      actions: read # Read Environment protection rules before requesting approval
     outputs:
       client_artifact_id: ${{ steps.client.outputs.artifact-id }}
       server_artifact_id: ${{ steps.server.outputs.artifact-id }}
