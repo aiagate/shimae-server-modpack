@@ -21,6 +21,9 @@ class PublicVerificationTests(unittest.TestCase):
         self.client.update(hasServerPack=False,additionalServerPackFilesCount=0)
         r=self.assess();self.assertEqual(r['status'],'server_pack_setting_required_or_ambiguous')
         self.assertFalse(r['publication_complete'])
+        self.assertEqual(r['required_action']['client_file_id'],11)
+        self.assertEqual(r['required_action']['server_file_id'],12)
+        self.assertIs(r['required_action']['retry_submission'],False)
     def test_unpublished_server_is_waiting_not_complete(self):
         self.server=None;r=self.assess();self.assertEqual(r['status'],'waiting_for_moderation')
         self.assertFalse(r['publication_complete'])

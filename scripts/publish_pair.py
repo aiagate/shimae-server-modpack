@@ -157,10 +157,11 @@ def submit_file(path, project_id, metadata, token, connection_factory=http.clien
 
 def server_metadata(config,version,changelog,parent,manual=False):
     # Child files inherit game versions. Avoid optional name resolution on the
-    # parent route, matching the Upload API's supported parent-only metadata.
+    # parent route. isServerPack is an undocumented hint used by other uploaders;
+    # only the read-only publication verifier can confirm actual classification.
     return {'changelog':changelog,'changelogType':'markdown',
         'displayName':f'Shimae Server Modpack {version} - Server Pack',
-        'releaseType':config['release_type'],'parentFileID':parent,
+        'releaseType':config['release_type'],'parentFileID':parent,'isServerPack':True,
         'isMarkedForManualRelease':manual}
 
 
