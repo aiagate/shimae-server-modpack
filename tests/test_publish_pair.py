@@ -33,6 +33,8 @@ class PublicationTests(unittest.TestCase):
         result=self.call(journal,upload)
         child=upload.call_args_list[1].args[2]
         self.assertEqual(child['parentFileID'],101)
+        self.assertIs(child['isServerPack'],True)
+        self.assertNotIn('isServerPack',upload.call_args_list[0].args[2])
         self.assertNotIn('gameVersionNames',child)
         self.assertNotIn('gameVersions',child)
         self.assertEqual(result['server_file_id'],102)
@@ -57,6 +59,15 @@ class PublicationTests(unittest.TestCase):
         upload.return_value=102
         self.call(journal,upload,mode='server_only')
         upload.assert_called_once(); self.assertEqual(upload.call_args.args[2]['parentFileID'],101)
+        self.assertIs(upload.call_args.args[2]['isServerPack'],True)
+    def test_child_metadata_rejection_never_falls_back_to_another_post(self):
+        journal=Journal()
+        upload=Mock(side_effect=[101,release.SubmissionError('rejected','response_body')])
+        with self.assertRaises(release.SubmissionError): self.call(journal,upload)
+        self.assertIs(upload.call_args_list[1].args[2]['isServerPack'],True)
+        with self.assertRaises(release.Invalid): self.call(journal,upload)
+        self.assertEqual(upload.call_count,2)
+        self.assertEqual(journal.read('client','result')['file_id'],101)
     def test_explicit_existing_parent_is_verified_before_server_only(self):
         journal=Journal(); upload=Mock(return_value=102); verifier=Mock()
         self.call(journal,upload,mode='server_only',existing_client_file_id=101,verifier=verifier)

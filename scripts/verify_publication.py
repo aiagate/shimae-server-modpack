@@ -52,7 +52,12 @@ def assess(identity,client_id,server_id,assets,client,server,children):
         count==server_count==len(children) and count>0)
     report['server_pack_classification_verified']=classified
     if not classified:
-        report['status']='server_pack_setting_required_or_ambiguous';return report
+        report['status']='server_pack_setting_required_or_ambiguous'
+        report['required_action']={
+            'action':'inspect_existing_server_file_and_set_server_pack_in_author_dashboard',
+            'project_id':identity['project_id'],'client_file_id':client_id,'server_file_id':server_id,
+            'retry_submission':False}
+        return report
     report['status']='approved_waiting_for_byte_verification'
     return report
 
