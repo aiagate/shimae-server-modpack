@@ -20,6 +20,10 @@ Minecraft 1.21.1 / NeoForge 21.1.243 向けの Modpack です。クライアン�
 
 配布 ZIP に MOD JAR、world、接続先、認証情報は含めません。サーバーの manifest はクライアントと同一で、Compose がクライアント専用の 10 project ID を除外します。
 
+## 0.0.5 の修正内容
+
+Thirst Was Taken 2.1.5 を Thirst Was Reclaimed 3.0.6 に置換し、Jade 15.10.6 の流体表示で発生する既知の Mixin 競合を除去します。クライアント・サーバーを同じ版に揃え、旧 Thirst と併用しないでください。Aero などの他 MOD の固定参照は変更しません。ドッキングコネクタの実機再現は未実施です。[検証記録](docs/thirst-fix-0.0.5.md)を参照してください。
+
 ## 0.0.4 の更新内容
 
 - Create: Design n' Decor 2.2b と Create Coasters 2.0 を追加。

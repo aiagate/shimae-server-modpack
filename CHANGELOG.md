@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.0.5
+
+- Thirst Was Taken 2.1.5 を Thirst Was Reclaimed 3.0.6 に置換し、Jade 15.10.6 の流体表示時に発生する既知の Mixin 競合を除去。
+- Thirst の設定を後継版に合わせて調整。クライアント・サーバーとも 0.0.5 に更新し、旧 Thirst と併用しないでください。
+- Aero のドッキングコネクタ設置・注視の実機再現試験は未実施です。[検証記録](docs/thirst-fix-0.0.5.md)を参照してください。
+
 ## 0.0.4
 
 - Create: Design n' Decor 2.2b と Create Coasters 2.0 を追加。
