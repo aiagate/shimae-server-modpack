@@ -35,6 +35,8 @@
 	handDrinkingHydration = 3
 	#How much the player thirst is quenched when drinking by hand
 	handDrinkingQuenched = 2
+	#Cooldown in ticks between drinking by hand attempts
+	handDrinkingCooldown = 20
 	#Whether extra hydration will convert to quenched
 	ExtraHydrationConvertToQuenched = true
 
@@ -47,8 +49,8 @@
 	runningWaterPurificationAmount = 1
 
 ["Purity-related Effects"]
-	#Purity for drinks that normally have purity but for whatever reason don't have a value set
-	defaultPurity = 2
+	#Whether water purity mechanics, display, propagation, and purity-related effects are enabled
+	enablePurity = true
 	#Whether player should gain hydration even if they recieved a purity-related debuff
 	quenchThirstWhenDebuffed = true
 	#% of getting poisoned after drinking dirty water
