@@ -90,6 +90,29 @@ the standard itzg AUTO_CURSEFORGE installer, not a custom downloader.
 5. Check logs before connecting with the matching client. Set port, memory and
    host paths for your environment.
 
+For 0.0.6, Chunky (485681 / 6383261) and Create: Stats & Power
+(1511282 / 9287207, mod ID create_stats) are removed from BOTH sides.
+VSS (1591852 / 8753475) remains removed. Use a fresh matching client profile
+and the new-directory server setup above. Before an in-place update, stop
+and back up both instances; remove these obsolete JARs from BOTH actual mods:
+  Chunky-NeoForge-1.4.23.jar
+  create_stats-1.16.0.jar (also create_stats-1.15.0.jar from older installs)
+  vss-0.2.12-neoforge-1.21.1.jar
+Only remove these add-ons; retain Create itself and all other pinned add-ons.
+Their dedicated config/chunky, create_stats-client.toml, create_stats-common.toml,
+vss-client-config.json and vss-server-config.json can be moved aside.
+Keep DistantHorizons.toml and preserve all worlds and caches.
+Create Stats adds create_stats blocks/items, recipes and persistent data.
+Existing panels, electrical machines, doors, helmets and inventory items from
+that namespace will lose their provider; loading/saving may discard missing
+content. Review a stopped-world backup in an isolated copy before using this
+release with an existing world. This validation uses a fresh disposable world.
+DH 3.3.3, C2ME, Sable 2.0.6 and the existing DH settings remain pinned.
+Client gameplay and production timeout improvements are untested.
+The previously supplied NAS NEOFORGE_LOADER_VERSION=21.1.243 differs from this
+release manifest's neoforge-21.1.266. Read back the current production Compose
+and effective loader before migration; no production Compose was changed here.
+
 Existing world migration is a separate operation: this ZIP contains neither
 the world nor server.properties and does not move them. Legacy CURSEFORGE can
 run below CF_BASE_DIR (by default /data/FeedTheBeast), while AUTO_CURSEFORGE
