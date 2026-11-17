@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.0.7
+
+- 0.0.7-local.3を正式版へ昇格。Minecraft 1.21.1 / NeoForge 21.1.266、client 206 / server 193参照。
+- Simulated Copycats 1.3.2、Loconautics 0.1.3BETA、Coasters Simulated 0.1.6、Let it Walk! 0.1.5 Betaを追加。既存Create Coasters 2.0は維持。
+- client専用でContraption Lights 1.6.0とLambDynamicLights 4.8.11+1.21.1を追加。LAMB方式を指定し、Iris・shader・DH設定を保持。shaderpack使用中の色光には制約があります。
+- 一部追加MODはBeta版です。専用サーバー新規world起動・保存・再起動を確認。client GUI・照明描画・FPS・装置実動作・本番world移行は未検証。[固定参照と導入上の注意](docs/mod-additions-0.0.7.md)を参照してください。
+
 ## 0.0.6
 
 - 検証済み0.0.6-local.3を正式版へ昇格。Minecraft 1.21.1 / NeoForge 21.1.266、client 200 / server 189の固定参照を使用します。

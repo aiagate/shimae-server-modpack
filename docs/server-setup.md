@@ -26,3 +26,8 @@ TrueNAS では同等の Custom App を使い、pack と downloads を読み取�
 この ZIP は world や `server.properties` を移行しません。旧 `CURSEFORGE` は `CF_BASE_DIR`（既定 `/data/FeedTheBeast`）の下で起動する場合があり、`AUTO_CURSEFORGE` の導入先 `/data` と異なります。まず実際の起動場所と `level-name` を確認してください。
 
 旧サーバーを停止し、整合性のあるコピーまたは snapshot を別のデータ領域へ作成して移行を検証します。world と私的な運用設定は保持し、MOD と loader は manifest から導入します。導入時に overrides が適用されるため、既存の設定変更も比較してください。`TYPE` の変更や ZIP の差し替えだけでは world は移りません。
+
+
+## 0.0.7の構成
+
+Minecraft 1.21.1 / NeoForge 21.1.266、server 193参照です。同じ版のclient 206参照を使用してください。Contraption Lights / LambDynamicLightsはclient専用で、Composeの除外対象です。旧Create Coasters 2.0は残します。一部追加MODはBeta版です。新規worldの起動・保存・再起動は検証済みですが、本番world移行と各装置の実動作は未検証です。[追加MODと検証範囲](mod-additions-0.0.7.md)を参照してください。
