@@ -90,7 +90,17 @@ the standard itzg AUTO_CURSEFORGE installer, not a custom downloader.
 5. Check logs before connecting with the matching client. Set port, memory and
    host paths for your environment.
 
-For 0.0.6, Chunky (485681 / 6383261) and Create: Stats & Power
+For 0.0.7, Minecraft 1.21.1 / NeoForge 21.1.266 and 193 server references
+are pinned. Match the 206-reference client. Simulated Copycats, Loconautics,
+Coasters Simulated and Let it Walk! are added; some additions are Beta versions.
+Keep the existing Create Coasters 2.0. Contraption Lights and LambDynamicLights
+are client-only and excluded by Compose. Contraption Lights uses LAMB mode;
+colored lighting has limitations while a shaderpack is active. Iris, shader
+and Distant Horizons settings are preserved. New-world server startup, save and
+restart were tested on the identical server pins. Client GUI, lighting, FPS,
+contraption behavior and production-world migration remain untested.
+
+When migrating from 0.0.5 or earlier, Chunky (485681 / 6383261) and Create: Stats & Power
 (1511282 / 9287207, mod ID create_stats) are removed from BOTH sides.
 VSS (1591852 / 8753475) remains removed. Use a fresh matching client profile
 and the new-directory server setup above. Before an in-place update, stop
