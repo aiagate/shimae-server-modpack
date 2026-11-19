@@ -1,0 +1,7 @@
+[time]
+speedMethod = "RATIO"
+dayStart = 23500.0
+nightStart = 12500.0
+daySpeed = 0.43333333333333335
+nightSpeed = 0.6111111111111112
+enableInterpolatedTime = false

@@ -90,15 +90,22 @@ the standard itzg AUTO_CURSEFORGE installer, not a custom downloader.
 5. Check logs before connecting with the matching client. Set port, memory and
    host paths for your environment.
 
-For 0.0.7, Minecraft 1.21.1 / NeoForge 21.1.266 and 193 server references
-are pinned. Match the 206-reference client. Simulated Copycats, Loconautics,
-Coasters Simulated and Let it Walk! are added; some additions are Beta versions.
-Keep the existing Create Coasters 2.0. Contraption Lights and LambDynamicLights
-are client-only and excluded by Compose. Contraption Lights uses LAMB mode;
-colored lighting has limitations while a shaderpack is active. Iris, shader
-and Distant Horizons settings are preserved. New-world server startup, save and
-restart were tested on the identical server pins. Client GUI, lighting, FPS,
-contraption behavior and production-world migration remain untested.
+For 0.0.8, Minecraft 1.21.1 / NeoForge 21.1.266 and 198 server references
+are pinned. Match the 211-reference client. Create: Tracks 1.0.1 is replaced
+by Create: Tracks+ 1.0.6b7 (same mod ID tracks; the existing
+config/tracks-server.toml stays valid). Items Displayed 2.0.10, Create:
+Ornithopter Glider 1.2.1, Better Days 3.3.6.3, Streams Reflowing 2.17.5 and
+Clutter No More 3.1.3 are added on both sides. New Year's Delight 2.0.2 ships
+with newYear mode OFF via newyearsdelight-common.toml. Better Days is set to
+a 25-minute day and a 15-minute night via betterdays-common.toml. Contraption
+Lights and LambDynamicLights remain client-only and excluded by Compose.
+Iris, shader and Distant Horizons settings are preserved. CurseForge file
+references and packaged settings were checked. In-game compatibility,
+client GUI and production-world migration have not been verified for 0.0.8.
+When updating 0.0.7 in place, stop both instances and remove the old
+tracks-neoforge-1.21.1-1.0.1.jar from BOTH actual mods folders; the new JAR
+is tracks_plus-1.0.6b7.jar. Keep config/tracks-server.toml, world data and
+all other pinned mods.
 
 When migrating from 0.0.5 or earlier, Chunky (485681 / 6383261) and Create: Stats & Power
 (1511282 / 9287207, mod ID create_stats) are removed from BOTH sides.
