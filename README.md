@@ -2,27 +2,27 @@
 
 Minecraft 1.21.1 向けの Modpack です。クライアント用の CurseForge manifest ZIP と、Docker で導入する Server Pack を配布します。
 
-正式版 `0.0.8` は検証候補の構成で、正式0.0.7（client 206 / server 193参照）を基点に、Create: Tracks 1.0.1 を Create: Tracks+ 1.0.6b7 へ置換し、Items Displayed 2.0.10、Create: Ornithopter Glider 1.2.1、Better Days 3.3.6.3、Streams Reflowing 2.17.5、Clutter No More 3.1.3 をclient/server両側へ追加します。Minecraft 1.21.1 / NeoForge 21.1.266、client 211 / server 198の固定参照です。New Year's Delightは newYear mode をOFFに固定し、Better Daysは昼25分・夜15分を指定します。既存のCreate各種・DH・Iris・LAMB設定は維持しています。[追加MODと検証範囲](docs/mod-additions-0.0.8.md)を参照してください。
+正式版 `0.0.9` では **Thirst Was Reclaimed 3.0.7** をクライアント・サーバー両方から削除しました。他のMODの固定参照は0.0.8と同じです。[0.0.8の変更点](docs/mod-additions-0.0.8.md)と[変更履歴](CHANGELOG.md)を参照してください。
 
-0.0.8の追加・置換6件はCurseForgeの固定ファイルを確認済みです。ただし**実機同居テスト・client GUI・本番world移行は未検証**です。Contraption Lightsは `LAMB` 方式で、shaderpack使用中の色光には制約があります。
+上書き導入時は、停止・ワールドのバックアップ後に両側の `mods` から `ThirstWasReclaimed-1.21.1-3.0.7.jar` を退避してください。Sand Filterなど同MODのブロック・アイテムは移行時に失われる可能性があります。0.0.9の実機テスト・既存ワールドの移行は未実施です。
 
 0.0.7から移行する場合は、停止後に両側の実modsフォルダから旧JAR `tracks-neoforge-1.21.1-1.0.1.jar` を退避してください（mod IDが同一のため旧JARの残存は二重読込になります）。既存 `config/tracks-server.toml`・DH設定・world・キャッシュは保持してください。0.0.5以前からの移行はChunky、Create Stats、VSSの旧JARを残さないでください。Create Statsのコンテンツは提供元を失うため、worldをバックアップし隔離コピーで確認してください。NASの既存Composeと実効loaderの読み戻し・変更はこのリリース作業では行っていません。
 
 ## ダウンロードと導入
 
-正式0.0.8の配布先は [GitHub Release](https://github.com/aiagate/shimae-server-modpack/releases/tag/v0.0.8) と [CurseForge](https://www.curseforge.com/minecraft/modpacks/shimae-server-modpack/files)（project ID `1733082`）です。CurseForgeの審査状況・受付IDはActionsの公開検証receiptで確認できます。
+正式0.0.9の配布先は [GitHub Release](https://github.com/aiagate/shimae-server-modpack/releases/tag/v0.0.9) と [CurseForge](https://www.curseforge.com/minecraft/modpacks/shimae-server-modpack/files)（project ID `1733082`）です。CurseForgeの審査状況・受付IDはActionsの公開検証receiptで確認できます。
 
-クライアントには `shimae-server-modpack-0.0.8.zip` を使用します。CurseForge App で ZIP をインポートし、MOD の取得後に起動してください。サーバーには同じ版のクライアントで接続します。
+クライアントには `shimae-server-modpack-0.0.9.zip` を使用します。CurseForge App で ZIP をインポートし、MOD の取得後に起動してください。サーバーには同じ版のクライアントで接続します。
 
-サーバーには `shimae-server-modpack-0.0.8-serverpack.zip` を使用します。この ZIP は導入用で、MOD JAR や Java を同梱した起動可能なサーバー一式ではありません。[サーバー導入手順](docs/server-setup.md)と ZIP 内の `README-SERVER.md` を参照してください。
+サーバーには `shimae-server-modpack-0.0.9-serverpack.zip` を使用します。この ZIP は導入用で、MOD JAR や Java を同梱した起動可能なサーバー一式ではありません。[サーバー導入手順](docs/server-setup.md)と ZIP 内の `README-SERVER.md` を参照してください。
 
 ## 配布内容
 
-| 項目 | 0.0.8 の内容 |
+| 項目 | 0.0.9 の内容 |
 | --- | --- |
 | Minecraft / loader | 1.21.1 / NeoForge 21.1.266 |
-| クライアント | 固定参照 211 件、設定、ライセンス文書 |
-| サーバー | サーバー用参照 198 件、設定、ライセンス文書、Compose と導入手順 |
+| クライアント | 固定参照 210 件、設定、ライセンス文書 |
+| サーバー | サーバー用参照 197 件、設定、ライセンス文書、Compose と導入手順 |
 
 配布 ZIP に MOD JAR、world、接続先、認証情報は含めません。サーバーの manifest はクライアントと同一で、Compose がクライアント専用の 13 project ID を除外します。
 

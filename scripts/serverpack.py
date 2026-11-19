@@ -90,8 +90,16 @@ the standard itzg AUTO_CURSEFORGE installer, not a custom downloader.
 5. Check logs before connecting with the matching client. Set port, memory and
    host paths for your environment.
 
-For 0.0.8, Minecraft 1.21.1 / NeoForge 21.1.266 and 198 server references
-are pinned. Match the 211-reference client. Create: Tracks 1.0.1 is replaced
+For 0.0.9, Minecraft 1.21.1 / NeoForge 21.1.266 and 197 server references
+are pinned. Match the 210-reference client. Thirst Was Reclaimed 3.0.7 is
+removed from both sides; all other MOD pins are unchanged from 0.0.8.
+Before updating in place, stop the instances, back up the world and remove
+ThirstWasReclaimed-1.21.1-3.0.7.jar from BOTH mods folders. Do not keep older
+Thirst Was Reclaimed or Thirst Was Taken JARs. Thirst content such as the
+Sand Filter may be lost on world load/save. Existing-world migration was not
+tested for 0.0.9.
+
+Since 0.0.8, Create: Tracks 1.0.1 is replaced
 by Create: Tracks+ 1.0.6b7 (same mod ID tracks; the existing
 config/tracks-server.toml stays valid). Items Displayed 2.0.10, Create:
 Ornithopter Glider 1.2.1, Better Days 3.3.6.3, Streams Reflowing 2.17.5 and
@@ -99,9 +107,7 @@ Clutter No More 3.1.3 are added on both sides. New Year's Delight 2.0.2 ships
 with newYear mode OFF via newyearsdelight-common.toml. Better Days is set to
 a 25-minute day and a 15-minute night via betterdays-common.toml. Contraption
 Lights and LambDynamicLights remain client-only and excluded by Compose.
-Iris, shader and Distant Horizons settings are preserved. CurseForge file
-references and packaged settings were checked. In-game compatibility,
-client GUI and production-world migration have not been verified for 0.0.8.
+Iris, shader and Distant Horizons settings are preserved.
 When updating 0.0.7 in place, stop both instances and remove the old
 tracks-neoforge-1.21.1-1.0.1.jar from BOTH actual mods folders; the new JAR
 is tracks_plus-1.0.6b7.jar. Keep config/tracks-server.toml, world data and

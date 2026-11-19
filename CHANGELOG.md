@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.0.9
+
+- クライアント・サーバー両方から Thirst Was Reclaimed 3.0.7（884742 / 9593285）を削除。専用設定、JEIの表示順の項目、Sand Filterの船体設定も収録しません。他のMODの固定参照は0.0.8と同じです（client 210 / server 197）。
+- 上書き導入時は、停止・ワールドのバックアップ後に両側の `mods` から `ThirstWasReclaimed-1.21.1-3.0.7.jar` を退避してください。Sand Filterなど同MODのブロック・アイテムは移行時に失われる可能性があります。実機テスト・既存ワールドの移行は未実施です。
+
 ## 0.0.8
 
 - 正式0.0.7（4ffaf1af8f80f336c7e356b88defce6ace3b3e0b）基点。Minecraft 1.21.1 / NeoForge 21.1.266、client 211 / server 198参照。
