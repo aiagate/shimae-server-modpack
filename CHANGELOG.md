@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.0.8
+
+- 正式0.0.7（4ffaf1af8f80f336c7e356b88defce6ace3b3e0b）基点。Minecraft 1.21.1 / NeoForge 21.1.266、client 211 / server 198参照。
+- Create: Tracks 1.0.1（1519765 / 7968280）を Create: Tracks+ 1.0.6b7（1548863 / 9185485）へ両側で置換。mod IDは同一の `tracks` で、既存 `config/tracks-server.toml` をそのまま使用します。上書き導入時は旧JAR `tracks-neoforge-1.21.1-1.0.1.jar` を両側から退避してください。
+- Items Displayed 2.0.10、Create: Ornithopter Glider 1.2.1、Better Days 3.3.6.3、Streams Reflowing 2.17.5、Clutter No More 3.1.3をclient/server両側へ追加。追加5件はCurseForgeとModrinthの実JARのSHA256が一致し、Tracks+はCurseForgeの固定ファイルを確認しました。
+- New Year's Delight 2.0.2は既存参照のまま、`newyearsdelight-common.toml` で newYear mode を OFF に固定。季節コンテンツは自動では発生しません。OFFが起動後生成設定で保持されるかは確認対象です。
+- Better Days は `betterdays-common.toml`（WhiteNoise設定）で昼25分・夜15分（20TPS・睡眠なし換算）を指定。睡眠の挙動は既定のまま変更しません。
+- Thirst Was Reclaimed は参照・設定とも維持。`/thirst enable @a false` によるプレイヤー単位の無効化を導入手順にのみ記載しました。本番では未実行で、常時の挙動は変更しません。
+- AFK Cinematics（Fabric専用）は不採用。代替のJi AFK CinematicはNeoForge 1.21.1向けの該当ファイルがCurseForgeにないため不収録。
+- Compact Controlsの旧不採用（レシピ不成立）を維持。
+- 6件の実機同居テスト・レシピ確認・client GUI・本番world移行は未検証。[追加MODと検証範囲](docs/mod-additions-0.0.8.md)を参照してください。
+
 ## 0.0.7
 
 - 0.0.7-local.3を正式版へ昇格。Minecraft 1.21.1 / NeoForge 21.1.266、client 206 / server 193参照。
