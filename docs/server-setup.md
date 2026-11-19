@@ -28,14 +28,12 @@ TrueNAS では同等の Custom App を使い、pack と downloads を読み取�
 旧サーバーを停止し、整合性のあるコピーまたは snapshot を別のデータ領域へ作成して移行を検証します。world と私的な運用設定は保持し、MOD と loader は manifest から導入します。導入時に overrides が適用されるため、既存の設定変更も比較してください。`TYPE` の変更や ZIP の差し替えだけでは world は移りません。
 
 
-## 0.0.8の構成
+## 0.0.9の構成
 
-Minecraft 1.21.1 / NeoForge 21.1.266、server 198参照です。同じ版のclient 211参照を使用してください。Create: Tracks 1.0.1をCreate: Tracks+ 1.0.6b7へ置換し、Items Displayed・Create: Ornithopter Glider・Better Days・Streams Reflowing・Clutter No Moreを両側へ追加します。New Year's DelightはnewYear modeをOFFにし、Better Daysは昼25分・夜15分（20TPS・睡眠なし換算）に設定します。Contraption Lights / LambDynamicLightsはclient専用で、Composeの除外対象です。0.0.7から上書き導入する場合は、停止後に旧JAR `tracks-neoforge-1.21.1-1.0.1.jar` を両側の実modsから退避してください。追加後の実機同居テスト・本番world移行は未検証です。[追加MODと検証範囲](mod-additions-0.0.8.md)を参照してください。
+Minecraft 1.21.1 / NeoForge 21.1.266、server 197参照です。同じ版のclient（210参照）を使用してください。Thirst Was Reclaimed以外の固定参照は0.0.8と同じです。[0.0.8の変更点](mod-additions-0.0.8.md)を参照してください。
 
-## 喉の渇きを無効にする（任意・本番未実行）
+### 既存のインスタンスに上書きする場合
 
-Thirst Was Reclaimed 3.0.7はMOD・既存設定とも維持しています。運用者がプレイヤー単位で無効化したい場合のみ、サーバー内で次のコマンドを実行できます。
+サーバーを停止してワールドをバックアップし、クライアント・サーバー両方の `mods` から `ThirstWasReclaimed-1.21.1-3.0.7.jar` を退避してください。それより古い版の Thirst Was Reclaimed や Thirst Was Taken も残さないでください。Sand Filterなど同MODのブロック・アイテムは、ワールドの読込・保存時に失われる可能性があります。0.0.9の既存ワールド移行は未検証です。
 
-    /thirst enable @a false
-
-`@a` は実行時にログインしているプレイヤーが対象です。同じ対象に `/thirst enable @a true` を実行すると再有効化できます。このコマンドは導入手順への記載のみで、本番では未実行です。
+0.0.7から更新する場合は、旧Tracksの `tracks-neoforge-1.21.1-1.0.1.jar` も両側から退避してください。

@@ -60141,10 +60141,6 @@
     "maxWaterDepth": 89,
     "implosionChance": 0.46666667
   },
-  "thirst:sand_filter": {
-    "maxWaterDepth": 67,
-    "implosionChance": 0.6
-  },
   "toms_storage:basic_inventory_hopper": {
     "maxWaterDepth": 30,
     "implosionChance": 0.82
