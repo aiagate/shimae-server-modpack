@@ -28,12 +28,14 @@ TrueNAS では同等の Custom App を使い、pack と downloads を読み取�
 旧サーバーを停止し、整合性のあるコピーまたは snapshot を別のデータ領域へ作成して移行を検証します。world と私的な運用設定は保持し、MOD と loader は manifest から導入します。導入時に overrides が適用されるため、既存の設定変更も比較してください。`TYPE` の変更や ZIP の差し替えだけでは world は移りません。
 
 
-## 0.0.9の構成
+## 0.1.0の構成
 
-Minecraft 1.21.1 / NeoForge 21.1.266、server 197参照です。同じ版のclient（210参照）を使用してください。Thirst Was Reclaimed以外の固定参照は0.0.8と同じです。[0.0.8の変更点](mod-additions-0.0.8.md)を参照してください。
+Minecraft 1.21.1 / NeoForge 21.1.266、server 197参照です。同じ版のclient（210参照）を使用してください。0.0.9からの変更はClutter No Moreの3.1.3 → 3.1.1のみで、Domum Ornamentumは1.0.231のままです。[変更履歴](../CHANGELOG.md)を参照してください。
 
 ### 既存のインスタンスに上書きする場合
 
-サーバーを停止してワールドをバックアップし、クライアント・サーバー両方の `mods` から `ThirstWasReclaimed-1.21.1-3.0.7.jar` を退避してください。それより古い版の Thirst Was Reclaimed や Thirst Was Taken も残さないでください。Sand Filterなど同MODのブロック・アイテムは、ワールドの読込・保存時に失われる可能性があります。0.0.9の既存ワールド移行は未検証です。
+サーバーを停止してワールドをバックアップし、クライアント・サーバー両方の `mods` から旧 `clutternomore-neoforge-3.1.3-1.21.1.jar` を退避してください。0.1.0の既存ワールド移行は未検証です。
+
+0.0.8以前からの更新では `ThirstWasReclaimed-1.21.1-3.0.7.jar` や、古い Thirst Was Reclaimed／Thirst Was Taken も退避してください。Sand Filterなど同MODのブロック・アイテムはワールドの読込・保存時に失われる可能性があります。
 
 0.0.7から更新する場合は、旧Tracksの `tracks-neoforge-1.21.1-1.0.1.jar` も両側から退避してください。

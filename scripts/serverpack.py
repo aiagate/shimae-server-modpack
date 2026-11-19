@@ -90,20 +90,23 @@ the standard itzg AUTO_CURSEFORGE installer, not a custom downloader.
 5. Check logs before connecting with the matching client. Set port, memory and
    host paths for your environment.
 
-For 0.0.9, Minecraft 1.21.1 / NeoForge 21.1.266 and 197 server references
-are pinned. Match the 210-reference client. Thirst Was Reclaimed 3.0.7 is
-removed from both sides; all other MOD pins are unchanged from 0.0.8.
-Before updating in place, stop the instances, back up the world and remove
-ThirstWasReclaimed-1.21.1-3.0.7.jar from BOTH mods folders. Do not keep older
-Thirst Was Reclaimed or Thirst Was Taken JARs. Thirst content such as the
-Sand Filter may be lost on world load/save. Existing-world migration was not
-tested for 0.0.9.
+For 0.1.0, Minecraft 1.21.1 / NeoForge 21.1.266 and 197 server references
+are pinned. Match the 210-reference client. Clutter No More is pinned to 3.1.1
+on both sides to avoid the Domum Ornamentum 1.0.231 version rejection. All
+other MOD pins and overrides are unchanged from 0.0.9. Before updating in
+place, stop the instances, back up the world and remove
+clutternomore-neoforge-3.1.3-1.21.1.jar from BOTH mods folders. Runtime and
+existing-world migration were not tested for 0.1.0.
+
+When updating from 0.0.8 or earlier, also remove any old Thirst Was Reclaimed
+or Thirst Was Taken JARs from both sides. Thirst content such as the Sand
+Filter may be lost on world load/save.
 
 Since 0.0.8, Create: Tracks 1.0.1 is replaced
 by Create: Tracks+ 1.0.6b7 (same mod ID tracks; the existing
 config/tracks-server.toml stays valid). Items Displayed 2.0.10, Create:
-Ornithopter Glider 1.2.1, Better Days 3.3.6.3, Streams Reflowing 2.17.5 and
-Clutter No More 3.1.3 are added on both sides. New Year's Delight 2.0.2 ships
+Ornithopter Glider 1.2.1, Better Days 3.3.6.3 and Streams Reflowing 2.17.5
+remain on both sides. New Year's Delight 2.0.2 ships
 with newYear mode OFF via newyearsdelight-common.toml. Better Days is set to
 a 25-minute day and a 15-minute night via betterdays-common.toml. Contraption
 Lights and LambDynamicLights remain client-only and excluded by Compose.
