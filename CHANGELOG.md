@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.0
+
+- クライアント・サーバーともに、[Clutter No More 3.1.1](https://www.curseforge.com/minecraft/mc-mods/clutternomore/files/9397567) に戻し、3.1.3が Domum Ornamentum `1.0.231` を版指定で拒否する起動エラーに対処しました。他のMODや設定は0.0.9のままです。
+- 上書きする場合は両側の `mods` に `clutternomore-neoforge-3.1.3-1.21.1.jar` を残さないでください。3.1.2で追加されたDomum Ornamentum向けの連携修正は含みません（[瓦の形状変更に関する既知の問題](https://github.com/Monad-Modding/ClutterNoMore/issues/83)）。実機起動・既存ワールド移行は未検証です。
+
 ## 0.0.9
 
 - クライアント・サーバー両方から Thirst Was Reclaimed 3.0.7（884742 / 9593285）を削除。専用設定、JEIの表示順の項目、Sand Filterの船体設定も収録しません。他のMODの固定参照は0.0.8と同じです（client 210 / server 197）。
