@@ -26,4 +26,12 @@ Actions の表示名は `CI / Validate`、`Release / Submit`、`Release / Verify
 
 Gitには配布ZIP・MOD JAR・私的な運用資料を入れません。公開済みRelease/ZIP、App原本、監査receipt、ローカル運用資料はcleanupの対象外です。
 
+### MOD依存バージョンのLint
+
+Validate と Submit の preflight は、`ci/mod-dependencies.json` に保存した固定ファイルのメタデータを、クライアント／サーバー別に照合します。NeoForgeの宣言範囲をMavenの版比較で判定し、導入済みの任意依存の範囲違反も停止します。Minecraftは起動せず、CIで各MODを再ダウンロードしません。
+
+MODの固定参照を追加・更新するときは、CurseForgeから**指定ファイルIDの実ファイル**を取得し、作業用ディレクトリに `<projectID>-<fileID>.jar`（シェーダーは `.zip`）として置きます。refsを更新した後、`python3 scripts/dependency_lint.py --refresh <作業用ディレクトリ>` を実行し、生成されたロックの差分もPRに含めます。変更のないファイルは再取得不要です。削除のみの変更では空のディレクトリを渡せます。未収録の固定ファイルがあるとCIは停止します。JAR本体はコミットしません。
+
+対象は外側のMODが宣言した版条件です。同梱JARは依存先候補として読み、候補のどれがロードされるかで結論が変わる場合や、静的に依存先を特定できない場合は未確定と表示します。ゲーム内動作やワールド移行はこのチェックの対象外です。
+
 コマンドはリポジトリのルートで実行します。固定 packwiz の用意は `.github/actions/build-pack/action.yml` を参照してください。配布物の導入は [サーバー導入手順](server-setup.md)、提出は [公開手順](publishing.md)で扱います。
