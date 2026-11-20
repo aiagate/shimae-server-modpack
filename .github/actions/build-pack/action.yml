@@ -11,11 +11,23 @@ outputs:
 runs:
   using: composite
   steps:
+    - name: Prepare pinned NeoForge version comparison libraries
+      shell: bash
+      run: |
+        set -euo pipefail
+        mkdir -p "$RUNNER_TEMP/dep-lint-libs"
+        cd "$RUNNER_TEMP/dep-lint-libs"
+        curl --fail --silent --show-error --retry 2 --max-time 30 -O https://repo.maven.apache.org/maven2/org/apache/maven/maven-artifact/3.8.5/maven-artifact-3.8.5.jar
+        curl --fail --silent --show-error --retry 2 --max-time 30 -O https://repo.maven.apache.org/maven2/org/apache/commons/commons-lang3/3.14.0/commons-lang3-3.14.0.jar
     - name: Test validation and publication failure handling
       shell: bash
       run: |
+        export DEP_LINT_LIBS="$RUNNER_TEMP/dep-lint-libs" JAVA="$JAVA_HOME_21_X64/bin/java"
         uv run --locked python -m unittest discover -s tests -v
         uv run --locked python -m compileall -q scripts tests
+    - name: Lint client and server MOD dependency versions
+      shell: bash
+      run: uv run --locked python scripts/dependency_lint.py --libs "$RUNNER_TEMP/dep-lint-libs" --java "$JAVA_HOME_21_X64/bin/java"
     - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
       with:
         go-version: '1.27.2'
