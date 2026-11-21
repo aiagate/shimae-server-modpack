@@ -9,10 +9,6 @@
 [sign]
 	#Gives signs a pixel consistent model and texture. Also affects other mods. This also makes them use a Block Model, making them render much much much faster than as block entities
 	pixel_consistent = true
-	#A scalar multiplier that will be applied to sign text making it brighter, supposedly more legible
-	# Default: 1.2
-	# Range: 0.0 ~ 5.0
-	text_color_multiplier = 1.2
 	#A list of sign blocks that will NOT be affected by the pixel consistent sign setting. Use full registry names separated by commas
 	sign_blacklist = []
 
@@ -37,10 +33,6 @@
 		dragon_breath_emissive = true
 
 [lily_pad]
-	#set to 0 tho have lilypads at the same exact position as vanilla.negative numbers will place them in their own blockspace right below avoiding any clipping.best of both worlds at default as its barely within its space
-	# Default: -0.016625
-	# Range: -1.0 ~ 1.0
-	y_offset = -0.016625
 
 [bell]
 	#Visually attach chains and ropes to bells
@@ -60,10 +52,6 @@
 	fast_hooks = false
 
 [hanging_sign]
-	#Scale of items on hanging signs (unit is in pixel they would occupy). Set to 8 to better match the pixels on the sign
-	# Default: 10.0
-	# Range: 0.0 ~ 32.0
-	item_pixel_scale = 10.0
 	#Makes signs swing!
 	swinging_signs = true
 	#Signs have visual attachment to walls and fences
@@ -83,10 +71,6 @@
 	fast_lanterns = false
 	#Renders the swaying wall lantern through the item renderer so its shading comes from the model's normals instead of the block model's baked per-face shading. This makes the lantern shade correctly no matter which wall it faces, at the cost of losing block ambient occlusion. Only affects the animated (close-up) renderer
 	entity_shading = true
-	#Size lanterns when held in hand
-	# Default: 0.625
-	# Range: 0.0 ~ 2.0
-	lantern_item_size = 0.625
 	#Gives a special animation to lanterns when held in hand
 	lantern_item_holding = true
 	#Makes lantern holding animation have the arm angled more upwards. Looks better if you have dynamic lights on
@@ -114,18 +98,10 @@
 [misc]
 	#Gives a special animation to torches when held in hand
 	torch_item_holding = true
-	#Size lanterns when held in hand
-	# Default: 1.0
-	# Range: 0.0 ~ 2.0
-	torch_item_size = 1.0
 	#Renders a flame particle on top of held torches
 	torch_item_flame = false
 	#Gives a special animation to supplementaries candle holders when held in hand
 	candle_holder_item_holding = true
-	#Size lanterns when held in hand
-	# Default: 0.625
-	# Range: 0.0 ~ 2.0
-	handle_holder_item_size = 0.625
 	#Makes Torch and Lantern holding animation be fixed, not changing with player facing
 	fixed_holding_animations = false
 	#Prevents campfire smoke from rendering if there is a solid block above it

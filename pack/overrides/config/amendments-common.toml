@@ -3,10 +3,6 @@
 	improved_screen = true
 
 [fireball]
-	#Cooldown for fire & dragon charges in ticks
-	# Default: 10
-	# Range: 0 ~ 1000
-	thrown_cooldown = 10
 	#Adds dragons charge item
 	dragon_charge = true
 	#Makes fire & dragon charges have gravity
@@ -21,10 +17,6 @@
 	improved_explosions = true
 
 [snowball]
-	#Allows snowballs to freeze entities on hit. Config is for how many ticks it will freeze
-	# Default: 35
-	# Range: 0 ~ 1000
-	freeze_ticks = 35
 
 [hanging_signs]
 	#Allows placing items on hanging signs
@@ -39,21 +31,9 @@
 	in_world_crafting = true
 	#Allows dying cauldron water bedrock style and mixing them too
 	dye_water = true
-	#Max amount of items that 1 cauldron layer can recolor.This is a multiplier on top of vanilla crafting recipe amount
-	# Default: 4
-	# Range: 1 ~ 64
-	dye_recipes_per_layer = 4
-	#Max amount of items that 1 cauldron layer can craft with potions.This is a multiplier on top of vanilla crafting recipe amount
-	# Default: 2
-	# Range: 1 ~ 64
-	potion_recipes_per_layer = 2
 	#Allows mixin potions in cauldrons
 	#Allowed Values: OFF, ONLY_BOILING, ON
 	potions_mixing = "ON"
-	#Max amount of effects allowed in a mixed potion
-	# Default: 8
-	# Range: 1 ~ 64
-	potion_mixing_limit = 8
 	#Makes cauldrons connect to fences
 	connect_to_fences = true
 	#Makes it so a dripstone drop only increments a cauldron by 1 layer(buttle) instead of a full bottle, making it just like a water cauldron
@@ -112,10 +92,6 @@
 [bell]
 	#Ring a bell by clicking on a chain that's connected to it
 	chain_ringing = true
-	#Max chain length that allows a bell to ring
-	# Default: 16
-	# Range: 0 ~ 256
-	chain_length = 16
 
 [banners]
 	#Allow banners to be placed on ceilings
@@ -132,10 +108,6 @@
 	torch_fire = true
 	#Allows torches to set entities on fire when held in offhand given you are attacking with a sword
 	torch_fire_offhand = false
-	#Duration of the on fire effect applied by torches. In seconds
-	# Default: 2
-	# Range: 1 ~ 60
-	torch_fire_duration = 2
 
 [lily_pad]
 	#Allows lilypads to have any block placed ontop

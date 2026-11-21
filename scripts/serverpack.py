@@ -17,8 +17,10 @@ def sha(path):
 
 
 EXCLUDED_CONFIGS = frozenset(('MouseTweaks.cfg', 'aeronautics_windsound-client.toml',
-    'entityculling.json', 'gpushift-client.toml', 'iris-excluded.json', 'iris.properties',
-    'skinlayers.json', 'sodium-mixins.properties', 'sodium-options.json'))
+    'appleskin-client.toml', 'atmosfera.json', 'entityculling.json', 'gpushift-client.toml', 'iris-excluded.json', 'iris.properties',
+    'skinlayers.json', 'sodium-mixins.properties', 'sodium-options.json',
+    'xaerohud.txt', 'xaeropatreon.txt', 'yungsmenutweaks-neoforge-1_21.toml'))
+EXCLUDED_CONFIG_DIRS = frozenset(('sound_physics_remastered', 'xaero'))
 
 
 def blobs(client, policy, refs, version):
@@ -30,7 +32,9 @@ def blobs(client, policy, refs, version):
         # Use the reviewed server refs/settings.
         paths = {n:h for n,h in policy['override_sha256']['client'].items()
                  if n.startswith('overrides/config/') and
-                 n.removeprefix('overrides/config/') not in EXCLUDED_CONFIGS}
+                 n.removeprefix('overrides/config/') not in EXCLUDED_CONFIGS and
+                 n.split('/')[2] not in EXCLUDED_CONFIG_DIRS and
+                 not n.endswith(('-client.toml', '-client.snbt', '-client.yaml'))}
         notices = {n:h for n,h in policy['override_sha256']['client'].items()
                    if n in ('overrides/LICENSE-Shimae.txt','overrides/THIRD-PARTY-NOTICES.txt')}
         release.need(paths and all(n.startswith('overrides/config/') for n in paths),

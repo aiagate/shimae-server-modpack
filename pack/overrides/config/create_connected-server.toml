@@ -1,41 +1,6 @@
 #.
-#Number of sub-folders allowed for schematics
-# Default: 5
-# Range: 0 ~ 20
-schematicsNestingDepth = 5
-#.
 #Enable the fix that gives remaining items after manual application
 applicationRemainingItemFix = true
-#.
-#Modify the stress output when a Fluid Vessel is used as a boiler
-# Default: 0.8125
-# Range: 0.0 ~ 3.4028234663852886E38
-vesselBoilerStressMultiplier = 0.8125
-#.
-#Modify the heat level when a Fluid Vessel is used as a boiler
-# Default: 0.5
-# Range: 0.0 ~ 3.4028234663852886E38
-vesselHeatMultiplier = 0.5
-#.
-#Limit the max boiler level achievable with a Fluid Vessel
-# Default: 18
-# Range: 0 ~ 18
-vesselMaxLevel = 18
-#.
-#RPM of a Kinetic Battery when discharging
-# Default: 64
-# Range: 0 ~ 256
-batteryDischargeRPM = 64
-#.
-#Max capacity of a Kinetic Battery in su-hours
-# Default: 512.0
-# Range: 0.0 ~ 8192.0
-batteryCapacity = 512.0
-#.
-#Minimum su consumption per tick of a discharging Kinetic Battery when powering belts
-# Default: 1.0
-# Range: 0.0 ~ 8192.0
-batteryMinDischarge = 1.0
 #.
 #Allow Redstone Links to have wildcards in both slots [restart required]
 allowDualWildcardLink = false
@@ -43,11 +8,6 @@ allowDualWildcardLink = false
 	#.
 	#Fine tune the kinetic stats of individual components
 	[stressValues.v1]
-		#.
-		#Stress impact of a powered brake [in Stress Units]
-		# Default: 16384.0
-		# Range: -Infinity ~ Infinity
-		brakeActiveStress = 16384.0
 
 		#.
 		#.

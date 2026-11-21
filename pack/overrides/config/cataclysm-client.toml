@@ -11,9 +11,5 @@
 	"custombossbar(on/off)" = true
 	#custombossbar(on/off)
 	"BossMusic(on/off)" = true
-	#BossMusicVolume
-	# Default: 1
-	# Range: 1 ~ 100
-	BossMusicVolume = 1
 	#showLoginNotice(on/off)
 	"showLoginNotice(on/off)" = true

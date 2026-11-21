@@ -11,11 +11,6 @@ renderWiresOnUnloadedChunks = false
 #Use Level-Of-Detail when rendering wires without flywheel.
 wireLOD = true
 #.
-#Maximum distance for wire rendering without flywheel.
-# Default: 512
-# Range: > -2147483648
-wireRenderDistance = 512
-#.
 #Show the pantograph range box.
 debugPantographRange = false
 #.

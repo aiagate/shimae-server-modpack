@@ -8,18 +8,8 @@
 	#Allow controlling Brass Switches remotely when approaching them on a train
 	flipDistantSwitches = true
 	#.
-	#Max distance between targeted track and placed switch stand
-	# Default: 64
-	# Range: 16 ~ 128
-	switchPlacementRange = 64
-	#.
 	#Allow creepers and ghast fireballs to damage tracks
 	creeperTrackDamage = false
-	#.
-	#Multiplier used for calculating exhaustion from speed when a handcar is used.
-	# Default: 0.009999999776482582
-	# Range: 0.0 ~ 1.0
-	handcarHungerMultiplier = 0.009999999776482582
 
 #.
 #Semaphore settings
@@ -39,21 +29,6 @@
 	#.
 	#Conductor whistle is limited to the owner of a train
 	mustOwnBoundTrain = false
-	#.
-	#Maximum length of conductor vents
-	# Default: 64
-	# Range: > 1
-	maxConductorVentLength = 64
-	#.
-	#How often a conductor whistle updates the train of the bound conductor
-	# Default: 10
-	# Range: 1 ~ 600
-	whistleRebindRate = 10
-	#.
-	#Maximum distance (in blocks) at which a conductor can be activated by looking at them
-	# Default: 16
-	# Range: 1 ~ 64
-	activationDistance = 16
 
 #.
 #Realism Settings

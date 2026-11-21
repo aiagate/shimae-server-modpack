@@ -2,10 +2,6 @@
 [display]
 	#If set to FALSE, the belts and tools will NOT draw on players.
 	showBeltOnPlayers = true
-	#Changes the scale of items on the belt.
-	# Default: 0.5
-	# Range: 0.1 ~ 2.0
-	beltItemScale = 0.5
 
 #Options for customizing the radial menu
 [menu]

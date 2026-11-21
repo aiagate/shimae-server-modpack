@@ -1,8 +1,4 @@
 [visuals]
-	#How much the dummy swings in degrees with respect to the damage dealt. default=0.75
-	# Default: 0.75
-	# Range: 0.0 ~ 2.0
-	animation_intensity = 0.75
 	#Show hearths instead of damage dealt? (1 hearth = two damage)
 	show_hearths = false
 	#Show damage numbers on entity

@@ -216,16 +216,6 @@
 	# Renders drawer labels brighter than surrounding environment would allow.
 	[Upgrades.Illumination]
 		enableUpgrade = true
-		# 
-		# Renders labels at minimum light level between 0 - 15
-		# Default: 13
-		# Range: 0 ~ 15
-		illuminationLevel = 13
-		# 
-		# Renders labels without upgrade at minimum light level between 0 - 15
-		# Default: 1
-		# Range: 0 ~ 15
-		minIlluminationLevel = 1
 
 	# Collects matching items through its top like a vanilla hopper.
 	[Upgrades.Hopper]

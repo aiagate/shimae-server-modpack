@@ -10,10 +10,6 @@
 	canvasSignDarkBackgroundList = ["gray", "purple", "blue", "brown", "green", "red", "black"]
 
 [farming]
-	#The chance (in decimal percentage) of Rich Soil providing a bone meal boost to a crop planted on it. Set to 0.0 to disable.
-	# Default: 0.2
-	# Range: 0.0 ~ 1.0
-	richSoilBoostChance = 0.2
 	#If enabled, tomato crops will be able to climb any rope tagged as farmersdelight:ropes. If disabled, this will be restricted to this mod's rope only.
 	#Beware: this will convert these blocks into the block specified in defaultTomatoVineRope.
 	enableTomatoVineClimbingTaggedRopes = true
@@ -25,10 +21,6 @@
 	enableCookingPotRecipeBook = true
 	#If enabled, storage crates (3x3) for vanilla crops (similar to Quark and Thermal Cultivation) will become craftable.
 	enableVanillaCropCrates = true
-	#How much (in decimal percentage) should each level of Fortune increase the odds of obtaining rare results on the Cutting Board? Set to 0.0 to disable.
-	# Default: 0.1
-	# Range: 0.0 ~ 1.0
-	cuttingBoardFortuneBonus = 0.1
 
 [overrides]
 	#If enabled, soups and stews from Minecraft will grant Nourishment when eaten, similar to meals from this mod.

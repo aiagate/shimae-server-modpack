@@ -9,10 +9,6 @@
 	#Keep showing the pump range indicator for a few seconds after
 	#looking away from the pump.
 	preservePumpRangeIndicator = true
-	#How many seconds the pump range indicator lingers after looking away.
-	# Default: 5
-	# Range: 1 ~ 60
-	pumpRangePreserveSeconds = 5
 
 [controls]
 	#Shift + right-click a pipe element (pump, valve, smart fluid pipe, pipe) held in
@@ -31,12 +27,6 @@
 	#CLIENT being present, so it takes effect in singleplayer only for now.) When false,
 	#pipes render exactly as stock Create.
 	pipeLevelRender = true
-	#Speed multiplier for the in-pipe fluid scroll animation (the level renderer above).
-	#1.0 = default; lower it to calm a fast flow, raise it to make it livelier. Only the
-	#animation speed changes, not the actual fluid transfer.
-	# Default: 1.0
-	# Range: 0.0 ~ 10.0
-	pipeLevelFlowSpeed = 1.0
 	#Needs the level renderer above: draw a FLOWING horizontal pipe at its head WATERLINE
 	#(like a resting pipe), so the fill rises as the head rises instead of always brimming
 	#the tube. A display metric, not physics (a pressurised pipe is really full); pump
@@ -49,10 +39,6 @@
 	fluidTiltEnabled = true
 	#Enable wavy fluid surface mesh on Sable sub-levels.
 	fluidWaveMesh = true
-	#Grid resolution for the fluid surface mesh.
-	# Default: 64
-	# Range: 2 ~ 128
-	fluidSurfaceResolution = 64
 	#Show debug wireframe, corner dots, and grid lines on fluid surfaces.
 	fluidDebugRender = false
 	#Hide fluid textures, showing only debug wireframe.
