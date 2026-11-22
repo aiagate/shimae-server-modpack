@@ -38,6 +38,14 @@ uv run --locked python -m compileall -q scripts tests
 uv run --locked python scripts/native_pack.py --output ./build --packwiz /path/to/packwiz
 ```
 
+### MOD依存バージョンのLint
+
+Validate と Submit の preflight は、`ci/mod-dependencies.json` に保存した固定ファイルのメタデータを、クライアント／サーバー別に照合します。NeoForge の宣言範囲を Maven の版比較で判定し、導入済みの任意依存の範囲違反も停止します。Minecraft は起動せず、CI で各 MOD を再ダウンロードしません。
+
+MOD の固定参照を追加・更新するときは、CurseForge から**指定ファイルIDの実ファイル**を取得し、作業用ディレクトリに `<projectID>-<fileID>.jar`（シェーダーは `.zip`）として置きます。refs を更新した後、`uv run --locked python scripts/dependency_lint.py --refresh <作業用ディレクトリ>` を実行し、生成されたロックの差分も PR に含めます。変更のないファイルは再取得不要です。削除のみの変更では空のディレクトリを渡せます。未収録の固定ファイルがあると CI は停止します。JAR 本体はコミットしません。
+
+対象は外側の MOD が宣言した版条件です。同梱 JAR は依存先候補として読み、候補のどれがロードされるかで結論が変わる場合や、静的に依存先を特定できない場合は未確定と表示します。ゲーム内動作やワールド移行はこのチェックの対象外です。
+
 ## ライセンス
 
 自作の設定への寄与、スクリプト、文書には [MIT License](LICENSE) を適用します。第三者の MOD、Shader、ライブラリ、生成された設定本文やコメントの権利は各作者に帰属します。適用範囲と配布物内の通知は [THIRD-PARTY-NOTICES.txt](pack/overrides/THIRD-PARTY-NOTICES.txt)を参照してください。
