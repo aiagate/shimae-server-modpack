@@ -2,49 +2,25 @@
 
 Minecraft 1.21.1 向けの Modpack です。クライアント用の CurseForge manifest ZIP と、Docker で導入する Server Pack を配布します。
 
-正式版 `0.1.0` では、Domum Ornamentum `1.0.231` との版指定の不一致を解消するため、**Clutter No Moreをクライアント・サーバー両方で3.1.1に戻しました**。上書き時は旧 `clutternomore-neoforge-3.1.3-1.21.1.jar` を両側の `mods` に残さないでください。他のMODと設定は0.0.9のままです。[変更履歴](CHANGELOG.md)を参照してください。
-
-上書き導入前にワールドをバックアップしてください。0.0.8以前から移行する場合は、両側の `mods` から `ThirstWasReclaimed-1.21.1-3.0.7.jar` も退避してください。Sand Filterなど同MODのブロック・アイテムは移行時に失われる可能性があります。0.1.0の実機テスト・既存ワールドの移行は未実施です。
-
-0.0.7から移行する場合は、停止後に両側の実modsフォルダから旧JAR `tracks-neoforge-1.21.1-1.0.1.jar` を退避してください（mod IDが同一のため旧JARの残存は二重読込になります）。既存 `config/tracks-server.toml`・DH設定・world・キャッシュは保持してください。0.0.5以前からの移行はChunky、Create Stats、VSSの旧JARを残さないでください。Create Statsのコンテンツは提供元を失うため、worldをバックアップし隔離コピーで確認してください。NASの既存Composeと実効loaderの読み戻し・変更はこのリリース作業では行っていません。
+上書き更新や既存ワールドの移行を行う場合は、事前にワールドをバックアップしたうえで、[変更履歴](CHANGELOG.md)（廃止・置換された旧 MOD JAR の退避など版ごとの注意点）を参照してください。
 
 ## ダウンロードと導入
 
-正式0.1.0の配布先は [GitHub Release](https://github.com/aiagate/shimae-server-modpack/releases/tag/v0.1.0) と [CurseForge](https://www.curseforge.com/minecraft/modpacks/shimae-server-modpack/files)（project ID `1733082`）です。CurseForgeの審査状況・受付IDはActionsの公開検証receiptで確認できます。
+配布先は [GitHub Releases](https://github.com/aiagate/shimae-server-modpack/releases) と [CurseForge](https://www.curseforge.com/minecraft/modpacks/shimae-server-modpack/files)（project ID `1733082`）です。
 
-クライアントには `shimae-server-modpack-0.1.0.zip` を使用します。CurseForge App で ZIP をインポートし、MOD の取得後に起動してください。サーバーには同じ版のクライアントで接続します。
+クライアントには `shimae-server-modpack-<version>.zip` を使用します。CurseForge App で ZIP をインポートし、MOD の取得後に起動してください。サーバーには同じ版のクライアントで接続します。
 
-サーバーには `shimae-server-modpack-0.1.0-serverpack.zip` を使用します。この ZIP は導入用で、MOD JAR や Java を同梱した起動可能なサーバー一式ではありません。[サーバー導入手順](docs/server-setup.md)と ZIP 内の `README-SERVER.md` を参照してください。
+サーバーには `shimae-server-modpack-<version>-serverpack.zip` を使用します。この ZIP は導入用で、MOD JAR や Java を同梱した起動可能なサーバー一式ではありません。導入手順は ZIP 内の `README-SERVER.md` を参照してください。
 
 ## 配布内容
 
-| 項目 | 0.1.0 の内容 |
+| 項目 | 内容 |
 | --- | --- |
-| Minecraft / loader | 1.21.1 / NeoForge 21.1.266 |
-| クライアント | 固定参照 210 件、設定、ライセンス文書 |
-| サーバー | サーバー用参照 197 件、設定、ライセンス文書、Compose と導入手順 |
+| Minecraft / loader | 1.21.1 / NeoForge（正確なローダー版は [pack/release.json](pack/release.json) および各リリースの manifest を参照） |
+| クライアント | 固定 MOD 参照（[pack/client.refs.json](pack/client.refs.json)）、設定、ライセンス文書 |
+| サーバー | サーバー用 MOD 参照（[pack/server.refs.json](pack/server.refs.json)）、設定、ライセンス文書、Compose と導入手順 |
 
-配布 ZIP に MOD JAR、world、接続先、認証情報は含めません。サーバーの manifest はクライアントと同一で、Compose がクライアント専用の 13 project ID を除外します。
-
-## 0.0.5 の修正内容
-
-Thirst Was Taken 2.1.5 を Thirst Was Reclaimed 3.0.6 に置換し、Jade 15.10.6 の流体表示で発生する既知の Mixin 競合を除去します。クライアント・サーバーを同じ版に揃え、旧 Thirst と併用しないでください。Aero などの他 MOD の固定参照は変更しません。ドッキングコネクタの実機再現は未実施です。[検証記録](docs/thirst-fix-0.0.5.md)を参照してください。
-
-## 0.0.4 の更新内容
-
-- Create: Design n' Decor 2.2b と Create Coasters 2.0 を追加。
-- Coasters の3ブロックにサバイバル用レシピを追加し、全ワールドへ自動適用。
-- JEI の検索対象を通常のCreativeタブに載らないアイテムにも拡張。
-
-当時のMinecraft / NeoForgeは1.21.1 / 21.1.243です。クライアント 203／サーバー 193 件の固定MOD参照を使用します。[レシピの使い方](docs/coasters-recipes.md)と[変更履歴](CHANGELOG.md)を参照してください。公開版のダウンロード先は上記の案内を使用してください。
-
-## 文書の案内
-
-- [CHANGELOG.md](CHANGELOG.md)：版ごとの変更内容。
-- [サーバー導入手順](docs/server-setup.md)：新規導入と既存 world の移行。
-- [開発・ビルド手順](docs/development.md)：編集対象、固定ツール、ローカル検証、CI。
-- [公開手順](docs/publishing.md)：提出、審査、区分設定、公開確認。
-- [公開・移行の履歴資料](docs/release-history.md#001-app-migration-evidence)：過去の提出・移行の根拠資料。
+配布 ZIP に MOD JAR、world、接続先、認証情報は含めません。サーバーの manifest はクライアントと同一で、Compose がクライアント専用 MOD を除外します。
 
 ## ライセンス
 
