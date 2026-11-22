@@ -17,14 +17,17 @@ jobs:
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
+      - uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d # v10.4.0
+        with:
+          version: '0.13.5'
       - name: Build and verify modpack
         uses: ./.github/actions/build-pack
         with:
           output-directory: ${{ runner.temp }}/build
       - name: Confirm independent rebuild preserves references and settings
         run: |
-          python3 scripts/native_pack.py --output "$RUNNER_TEMP/rebuild" --packwiz "$RUNNER_TEMP/tools/packwiz"
-          python3 - <<'PY'
+          uv run --locked python scripts/native_pack.py --output "$RUNNER_TEMP/rebuild" --packwiz "$RUNNER_TEMP/tools/packwiz"
+          uv run --locked python - <<'PY'
           import os, pathlib
           a=pathlib.Path(os.environ['RUNNER_TEMP'])/'build'
           b=a.parent/'rebuild'

@@ -14,8 +14,8 @@ runs:
     - name: Test validation and publication failure handling
       shell: bash
       run: |
-        python3 -m unittest discover -s tests -v
-        python3 -m compileall -q scripts tests
+        uv run --locked python -m unittest discover -s tests -v
+        uv run --locked python -m compileall -q scripts tests
     - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
       with:
         go-version: '1.27.2'
@@ -26,7 +26,7 @@ runs:
     - name: Reject committed distribution binaries
       shell: bash
       run: |
-        python3 - <<'PY'
+        uv run --locked python - <<'PY'
         import subprocess
         paths = subprocess.check_output(['git', 'ls-files', '-z']).split(b'\0')
         if any(p.lower().endswith((b'.zip', b'.jar', b'.mrpack')) for p in paths):
@@ -39,9 +39,9 @@ runs:
         BUILD_OUTPUT: ${{ inputs.output-directory }}
       run: |
         set -euo pipefail
-        python3 scripts/native_pack.py --output "$BUILD_OUTPUT" --packwiz "$RUNNER_TEMP/tools/packwiz"
-        VERSION=$(python3 -c 'import json; print(json.load(open("pack/release.json"))["version"])')
+        uv run --locked python scripts/native_pack.py --output "$BUILD_OUTPUT" --packwiz "$RUNNER_TEMP/tools/packwiz"
+        VERSION=$(uv run --locked python -c 'import json; print(json.load(open("pack/release.json"))["version"])')
         CLIENT_ZIP="$BUILD_OUTPUT/shimae-server-modpack-${VERSION}.zip"
         SERVER_ZIP="$BUILD_OUTPUT/shimae-server-modpack-${VERSION}-serverpack.zip"
-        python3 scripts/publish_pair.py --client "$CLIENT_ZIP" --client-receipt "$BUILD_OUTPUT/client.json" --server "$SERVER_ZIP" --server-receipt "$BUILD_OUTPUT/server.json" --receipt "$BUILD_OUTPUT/plan.json"
+        uv run --locked python scripts/publish_pair.py --client "$CLIENT_ZIP" --client-receipt "$BUILD_OUTPUT/client.json" --server "$SERVER_ZIP" --server-receipt "$BUILD_OUTPUT/server.json" --receipt "$BUILD_OUTPUT/plan.json"
         echo "client_zip=$CLIENT_ZIP" >> "$GITHUB_OUTPUT"
