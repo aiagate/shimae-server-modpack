@@ -1,7 +1,0 @@
-#Aiming mode settings: geometry, FOV, blur, zoom and secondary camera capture.
-[aiming]
-
-#Thermal vision module settings: toggle transition timing and ambient sound.
-[thermal]
-	#Whether the thermal module plays its work-loop ambient sound.
-	workLoopSoundEnabled = true

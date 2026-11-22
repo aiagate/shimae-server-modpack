@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.1
+
+- Carry On の `forbiddenTiles` に Create 系アドオン 46 件を追加。`simulated:*`、`aeronautics:*`、`railways:*`、`tfmg:*` など `create` で始まらない mod ID のブロックが持ち上げ可能だった問題を修正しました。
+- クライアント専用の設定ファイル（JEI・Jade・Xaero・Sodium・Iris など）をサーバーパックから除外し、`overrides/config/` を整理しました。MOD の追加・削除はありません。
+
 ## 0.1.0
 
 - クライアント・サーバーともに、[Clutter No More 3.1.1](https://www.curseforge.com/minecraft/mc-mods/clutternomore/files/9397567) に戻し、3.1.3が Domum Ornamentum `1.0.231` を版指定で拒否する起動エラーに対処しました。

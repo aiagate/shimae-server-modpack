@@ -1,4 +1,0 @@
-#Player climb animation playback (KosmX playerAnimator layer).
-[animation]
-	#Play the rope-climb animations on your local player while attached to a rope.
-	enableClimbAnimation = true
