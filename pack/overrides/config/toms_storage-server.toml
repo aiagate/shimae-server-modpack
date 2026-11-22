@@ -1,4 +1,0 @@
-#Only Allow Trims to Connect Inventories
-onlyTrimsConnect = false
-#Use multithreading to improve performance
-runMultithreaded = true

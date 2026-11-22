@@ -1,5 +1,0 @@
-[general]
-	#If true, connections between two blocks that are both NOT on a ship (i.e., on the ground) will be blocked.
-	restrictWorldToWorldConnection = false
-	#If true, connections between two blocks that are on the SAME ship will be blocked.
-	restrictIntraShipConnection = false
