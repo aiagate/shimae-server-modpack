@@ -1,12 +1,10 @@
 """Read-only Upload API version audit; no POST or private response text."""
-import argparse
 import http.client
-import json
-import os
-from pathlib import Path
 import ssl
+from collections.abc import Callable
 
-from release import HOST, parse_json, read_error_summary, token_check, Invalid
+from curseforge_api import HOST, read_error_summary, token_check
+from pack_validation import parse_json
 
 WANTED = ('1.21.1', 'NeoForge', 'Client')
 LIMIT = 2 * 1024 * 1024
@@ -25,7 +23,7 @@ def credential_preflight(token):
             'token_kind_verified_from_format': False}
 
 
-def audit(token, connection_factory=http.client.HTTPSConnection):
+def audit(token, connection_factory: Callable[..., http.client.HTTPSConnection] = http.client.HTTPSConnection):
     token_check(token)
     report = {'method': 'GET', 'path': '/api/game/versions', 'http_status': None,
               'status': 'unconfirmed', 'requested_names': list(WANTED),
@@ -64,11 +62,12 @@ def audit(token, connection_factory=http.client.HTTPSConnection):
                 return report
             report['matched_versions'].append({k: row[k] for k in ('name', 'id', 'gameVersionTypeID')})
         found = {row['name'] for row in report['matched_versions']}
-        report.update(status='read_complete', missing_names=[name for name in WANTED if name not in found])
+        missing_names = [name for name in WANTED if name not in found]
+        report.update(status='read_complete', missing_names=missing_names)
         # Upload metadata uses documented string names, never guessed numeric IDs.
         # A name may legitimately occur in multiple gameVersionTypeID groups.
         report['numeric_ids_selected'] = False
-        if report['missing_names']:
+        if missing_names:
             report['category'] = 'missing_version_names'
         elif len(found) != len(report['matched_versions']):
             report['category'] = 'all_metadata_names_present_with_variants'
@@ -90,25 +89,3 @@ def audit(token, connection_factory=http.client.HTTPSConnection):
             except (OSError, http.client.HTTPException):
                 pass
     return report
-
-
-def main():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--receipt', type=Path, required=True)
-    args = parser.parse_args()
-    try:
-        # Require a new writable receipt before any request.
-        token = os.environ.get('CURSEFORGE_API_TOKEN', '')
-        with args.receipt.open('x') as handle:
-            json.dump({'status': 'not_started', 'credential_preflight': credential_preflight(token)}, handle)
-        result = audit(token)
-        args.receipt.write_text(json.dumps(result, indent=2) + '\n')
-        print(json.dumps(result, indent=2))
-        return 0 if result['status'] == 'read_complete' else 1
-    except (Invalid, OSError, ValueError):
-        print('STOP: read-only API audit could not complete; no upload performed.')
-        return 1
-
-
-if __name__ == '__main__':
-    raise SystemExit(main())

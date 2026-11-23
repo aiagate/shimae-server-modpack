@@ -1,14 +1,15 @@
 """Synthetic installer inputs; no MOD/runtime is executed."""
 import hashlib
-import json
-from pathlib import Path
 import sys
 import tempfile
 import unittest
 import zipfile
+from pathlib import Path
+
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'scripts'))
+import pack_validation
 import serverpack as s
-import release
+
 
 class ServerSetupTests(unittest.TestCase):
     def setUp(self):
@@ -49,10 +50,10 @@ class ServerSetupTests(unittest.TestCase):
         _,receipt=self.build()
         with zipfile.ZipFile(self.server,'a') as z: z.writestr('secrets.env',b'not-real')
         receipt.update(sha256=s.sha(self.server),size_bytes=self.server.stat().st_size)
-        with self.assertRaises(release.Invalid): s.verify_prepared(self.server,receipt,self.client,self.policy,'synthetic-next',self.refs)
+        with self.assertRaises(pack_validation.Invalid): s.verify_prepared(self.server,receipt,self.client,self.policy,'synthetic-next',self.refs)
     def test_changed_reviewed_config_rejected(self):
         self.policy['override_sha256']['client']['overrides/config/example.toml']='a'*64
-        with self.assertRaises(release.Invalid): self.build()
+        with self.assertRaises(pack_validation.Invalid): self.build()
     def test_deterministic_bytes(self):
         files,_=self.build(); other=Path(self.tmp.name)/'again.zip'; s.write_zip(other,files)
         self.assertEqual(s.sha(self.server),s.sha(other))

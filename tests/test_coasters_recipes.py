@@ -1,13 +1,13 @@
 """Check the real recipe pack reaches both distribution staging paths."""
 import json
-from pathlib import Path
 import sys
 import tempfile
 import unittest
 import zipfile
+from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts'))
-import native_pack
+import build_pack
 import serverpack
 
 ROOT = Path(__file__).resolve().parents[1] / 'pack'
@@ -16,7 +16,7 @@ PREFIX = 'overrides/config/openloader/packs/shimae_coasters/'
 
 class CoastersDistributionTests(unittest.TestCase):
     def test_recipe_pack_is_valid_for_target_version_and_distributed_to_both_sides(self):
-        meta, refs, overrides, _ = native_pack.load_inputs(ROOT)
+        meta, refs, overrides, _ = build_pack.load_inputs(ROOT)
         files = {n: b for n, b in overrides.items() if n.startswith(PREFIX)}
         self.assertEqual(json.loads(files[PREFIX + 'pack.mcmeta'])['pack']['pack_format'], 48)
         recipes = {n: json.loads(b) for n, b in files.items() if n.endswith('.json')}
@@ -38,7 +38,7 @@ class CoastersDistributionTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             stage = Path(tmp) / 'stage'
             stage.mkdir()
-            native_pack.stage(stage, meta, refs, overrides)
+            build_pack.stage(stage, meta, refs, overrides)
             for name, blob in files.items():
                 self.assertEqual((stage / name.removeprefix('overrides/')).read_bytes(), blob)
             client = Path(tmp) / 'client.zip'
@@ -47,6 +47,6 @@ class CoastersDistributionTests(unittest.TestCase):
                 archive.writestr('modlist.html', '<ul></ul>')
                 for name, blob in overrides.items():
                     archive.writestr(name, blob)
-            server = serverpack.blobs(client, native_pack.policy(overrides), refs, meta['version'])
+            server = serverpack.blobs(client, build_pack.policy(overrides), refs, meta['version'])
             for name, blob in files.items():
                 self.assertEqual(server[name], blob)

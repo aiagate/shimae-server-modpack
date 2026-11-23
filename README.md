@@ -28,14 +28,15 @@ Minecraft 1.21.1 向けの Modpack です。クライアント用の CurseForge 
 
 ```sh
 uv sync --locked
+uv run --locked ruff check scripts tests
+uv run --locked ty check
 uv run --locked python -m unittest discover -s tests -v
-uv run --locked python -m compileall -q scripts tests
 ```
 
 配布 ZIP をローカルで生成するには、CI と同じ版の packwiz を用意し、未作成の出力先を指定します。
 
 ```sh
-uv run --locked python scripts/native_pack.py --output ./build --packwiz /path/to/packwiz
+uv run --locked python scripts/build_pack.py --output ./build --packwiz /path/to/packwiz
 ```
 
 ### MOD依存バージョンのLint

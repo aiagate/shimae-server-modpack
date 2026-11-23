@@ -3,21 +3,21 @@
 Only read ZIP metadata. Never launch Minecraft or load classes from MOD JARs.
 """
 import argparse
-from collections import defaultdict
-from dataclasses import dataclass
 import hashlib
 import io
 import json
 import os
-from pathlib import Path
 import re
 import subprocess
 import sys
 import tomllib
+from collections import defaultdict
+from dataclasses import dataclass
+from pathlib import Path
 from zipfile import BadZipFile, ZipFile
 
 import pack_io
-import release
+import pack_validation
 
 ROOT = Path(__file__).resolve().parents[1]
 LOCK = ROOT / 'ci' / 'mod-dependencies.json'
@@ -47,7 +47,7 @@ def implementation_version(archive, names):
                  if line.lower().startswith(b'implementation-version: ')), '0.0NONE')
 
 
-def inspect_jar(stream, nested=False, depth=0):
+def inspect_jar(stream, nested=False, depth=0, jarjar=None):
     if depth > 8:
         raise ValueError('Nested JAR depth exceeds limit')
     with ZipFile(stream) as archive:
@@ -68,14 +68,25 @@ def inspect_jar(stream, nested=False, depth=0):
                         raise ValueError(f'Unknown dependency type or side for {mod_id}')
                     # FML uses a single space for an omitted, unbounded range.
                     dependencies.append([item['modId'], kind, side, item.get('versionRange', ' ')])
-                mods.append({'id': mod_id, 'version': version, 'nested': nested, 'deps': dependencies})
+                mods.append({'id': mod_id, 'version': version, 'nested': nested, 'deps': dependencies,
+                             **({'jarjar': jarjar} if jarjar else {})})
         elif not nested:
             raise ValueError(f'Missing {TOML} in pinned JAR')
         if JARJAR in names:
             entries = json.loads(read_entry(archive, JARJAR))['jars']
             for entry in entries:
                 path = entry['path']
-                mods.extend(inspect_jar(io.BytesIO(read_entry(archive, path, 128 * 1024**2)), True, depth + 1))
+                identifier = entry.get('identifier')
+                version = entry.get('version')
+                metadata = None
+                if identifier and version:
+                    metadata = {
+                        'coordinate': f"{identifier['group']}:{identifier['artifact']}",
+                        'range': version['range'],
+                        'artifact_version': version['artifactVersion'],
+                    }
+                mods.extend(inspect_jar(io.BytesIO(read_entry(archive, path, 128 * 1024**2)),
+                                        True, depth + 1, metadata))
         return mods
 
 
@@ -109,6 +120,35 @@ def dependency_checks(side, mods):
     return checks, sorted(set(unresolved))
 
 
+def exclude_ineligible_bundles(mods, java, libs, minecraft):
+    """Narrow competing providers only when their Jar-in-Jar ranges identify one version."""
+    providers = defaultdict(list)
+    for mod in mods:
+        providers[mod['id']].append(mod)
+
+    excluded = set()
+    for mod_id, candidates in providers.items():
+        if len({mod['version'] for mod in candidates}) < 2:
+            continue
+        metadata = [mod.get('jarjar') for mod in candidates]
+        if any(not entry for entry in metadata) or len({entry['coordinate'] for entry in metadata}) != 1:
+            continue
+        coordinate = metadata[0]['coordinate']
+        artifact_versions = {entry['artifact_version'] for entry in metadata}
+        ranges = {entry['range'] for entry in metadata}
+        if any(not spec.startswith(('[', '(')) for spec in ranges):
+            continue
+        checks = [Check(mod_id, '', coordinate, version, spec, 'required')
+                  for version in artifact_versions for spec in ranges]
+        eligible = artifact_versions - {check.version for check in compare(checks, java, libs, minecraft)}
+        if len(eligible) == 1:
+            selected_versions = {mod['version'] for mod in candidates
+                                 if mod['jarjar']['artifact_version'] in eligible}
+            excluded.update((mod_id, mod['version']) for mod in candidates
+                            if mod['version'] not in selected_versions)
+    return [mod for mod in mods if (mod['id'], mod['version']) not in excluded]
+
+
 def compare(checks, java, libs, minecraft):
     for jar, sha in LIBS.items():
         with (libs / jar).open('rb') as file:
@@ -131,8 +171,8 @@ def compare(checks, java, libs, minecraft):
 
 def read_pack():
     pack = ROOT / 'pack'
-    meta = release.parse_json((pack / 'release.json').read_bytes())
-    refs = {side: pack_io.reference_map(release.parse_json((pack / f'{side}.refs.json').read_bytes())['files'])
+    meta = pack_validation.parse_json((pack / 'release.json').read_bytes())
+    refs = {side: pack_io.reference_map(pack_validation.parse_json((pack / f'{side}.refs.json').read_bytes())['files'])
             for side in pack_io.KINDS}
     return meta, {side: [f'{pid}-{r["fileID"]}' for pid, r in sorted(rows.items())] for side, rows in refs.items()}
 
@@ -197,7 +237,8 @@ def run_lint(meta, refs, records, java, libs):
     checks_by_side, unresolved_by_side = {}, {}
     for side, pins in refs.items():
         mods = [m for pin in pins for m in records[pin]['mods']]
-        checks, unresolved = dependency_checks(side, system + mods)
+        eligible_mods = exclude_ineligible_bundles(mods, java, libs, mc)
+        checks, unresolved = dependency_checks(side, system + eligible_mods)
         checks_by_side[side] = checks
         unresolved_by_side[side] = unresolved
     conflicts = set(compare([c for checks in checks_by_side.values() for c in checks], java, libs, mc))
@@ -236,7 +277,7 @@ def main():
     args = parser.parse_args()
     try:
         meta, refs = read_pack()
-        records = release.parse_json(LOCK.read_bytes()) if LOCK.is_file() else {}
+        records = pack_validation.parse_json(LOCK.read_bytes()) if LOCK.is_file() else {}
         if args.refresh is not None:
             write_lock(refresh_lock(refs['client'], records, args.refresh))
             return 0

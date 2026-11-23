@@ -1,11 +1,12 @@
 import json
-from pathlib import Path
 import sys
 import unittest
+from pathlib import Path
 from unittest.mock import Mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts'))
-import diagnose_api as d
+import curseforge_preflight as d
+from pack_validation import Invalid
 
 
 class AuditTests(unittest.TestCase):
@@ -50,7 +51,7 @@ class AuditTests(unittest.TestCase):
         self.assertNotIn('dummy-token', json.dumps(result))
         self.assertNotIn('user@example.invalid', json.dumps(result))
         factory.return_value.request.assert_called_once()
-        with self.assertRaises(d.Invalid):
+        with self.assertRaises(Invalid):
             d.audit('', factory)
         factory.return_value.request.assert_called_once()
 

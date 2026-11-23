@@ -8,7 +8,7 @@ import json
 import re
 import zipfile
 
-import release
+import pack_validation
 
 
 def sha(path):
@@ -24,11 +24,11 @@ EXCLUDED_CONFIG_DIRS = frozenset(('sound_physics_remastered', 'xaero'))
 
 
 def blobs(client, policy, refs, version):
-    release.need(isinstance(version,str) and re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9._-]{0,79}',version),
+    pack_validation.need(isinstance(version,str) and re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9._-]{0,79}',version),
                  'unsafe release version')
     with zipfile.ZipFile(client) as archive:
         manifest = archive.read('manifest.json')
-        release.need(release.parse_json(manifest)['version'] == version, 'client manifest version mismatch')
+        pack_validation.need(pack_validation.parse_json(manifest)['version'] == version, 'client manifest version mismatch')
         # Use the reviewed server refs/settings.
         paths = {n:h for n,h in policy['override_sha256']['client'].items()
                  if n.startswith('overrides/config/') and
@@ -37,11 +37,11 @@ def blobs(client, policy, refs, version):
                  not n.endswith(('-client.toml', '-client.snbt', '-client.yaml'))}
         notices = {n:h for n,h in policy['override_sha256']['client'].items()
                    if n in ('overrides/LICENSE-Shimae.txt','overrides/THIRD-PARTY-NOTICES.txt')}
-        release.need(paths and all(n.startswith('overrides/config/') for n in paths),
+        pack_validation.need(paths and all(n.startswith('overrides/config/') for n in paths),
                      'server settings must be reviewed config paths')
         paths.update(notices)
         files = {n: archive.read(n) for n in paths}
-        release.need(all(hashlib.sha256(files[n]).hexdigest() == h for n,h in paths.items()),
+        pack_validation.need(all(hashlib.sha256(files[n]).hexdigest() == h for n,h in paths.items()),
                      'server config differs from the verified client; review policy first')
         files['manifest.json'] = manifest
         files['modlist.html'] = archive.read('modlist.html')
@@ -167,7 +167,7 @@ https://blog.curseforge.com/server-packs-tutorial/
 
 
 def write_zip(output, files):
-    release.need(not output.exists(), 'use a new server setup output')
+    pack_validation.need(not output.exists(), 'use a new server setup output')
     with output.open('xb') as handle, zipfile.ZipFile(handle,'w') as archive:
         for name, content in sorted(files.items()):
             info=zipfile.ZipInfo(name, (2000,1,1,0,0,0))
@@ -179,18 +179,18 @@ def write_zip(output, files):
 
 
 def verify_prepared(server, receipt, client, policy, version, refs):
-    release.need(server.is_file() and not server.is_symlink() and
-        server.stat().st_size <= release.MAX_ZIP, 'invalid server setup file/size')
+    pack_validation.need(server.is_file() and not server.is_symlink() and
+        server.stat().st_size <= pack_validation.MAX_ZIP, 'invalid server setup file/size')
     expected=blobs(client,policy,refs,version)
     with zipfile.ZipFile(server) as archive:
-        release.need(len(archive.infolist()) == len(expected) and
+        pack_validation.need(len(archive.infolist()) == len(expected) and
                      set(archive.namelist()) == set(expected), 'unexpected server setup entries')
         for info in archive.infolist():
-            release.need(info.file_size == len(expected[info.filename]) and
+            pack_validation.need(info.file_size == len(expected[info.filename]) and
                 not info.flag_bits & 1 and info.external_attr == 0o100644 << 16 and
                 info.compress_type == zipfile.ZIP_STORED and archive.read(info) == expected[info.filename],
                 'server setup bytes differ from verified inputs')
-    release.need(receipt.get('schema_version')==1 and receipt.get('version')==version and
+    pack_validation.need(receipt.get('schema_version')==1 and receipt.get('version')==version and
         receipt.get('client_sha256')==sha(client) and receipt.get('sha256')==sha(server) and
         receipt.get('size_bytes')==server.stat().st_size and receipt.get('filename')==server.name and
         receipt.get('format')=='manifest-installer-input', 'server receipt identity differs')

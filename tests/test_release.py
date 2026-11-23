@@ -1,19 +1,20 @@
 """Synthetic fixtures only; never distribute these manifests as real exports."""
 import hashlib
+import http.client
 import io
 import json
-from pathlib import Path
-import sys
-import unittest
 import ssl
-import http.client
+import sys
 import tempfile
-from unittest.mock import Mock, patch
+import unittest
 import zipfile
+from pathlib import Path
+from unittest.mock import Mock, patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts'))
-import release as r
-import publish_pair
+import curseforge_api
+import pack_validation as r
+import submit_pack
 
 
 class ReleaseTests(unittest.TestCase):
@@ -21,7 +22,7 @@ class ReleaseTests(unittest.TestCase):
         # Exercise the production streaming uploader, not an unused legacy POST.
         temp=tempfile.TemporaryDirectory();self.addCleanup(temp.cleanup)
         path=Path(temp.name)/'shimae-server-modpack.zip';path.write_bytes(blob)
-        return publish_pair.submit_file(path,config['project_id'],metadata,token,factory)
+        return submit_pack.submit_file(path,config['project_id'],metadata,token,factory)
 
     def fixture(self, extra=None, change=None):
         manifest = {'manifestType': 'minecraftModpack', 'manifestVersion': 1,
@@ -206,7 +207,7 @@ class ReleaseTests(unittest.TestCase):
         _, c = self.fixture()
         for text in ('', 'REPLACE_ME'):
             with self.assertRaises(r.Invalid):
-                r.metadata(c, text)
+                curseforge_api.metadata(c, text)
 
     def test_submit_same_bytes_and_header_only_token(self):
         b, c = self.fixture()
@@ -215,7 +216,7 @@ class ReleaseTests(unittest.TestCase):
         conn = factory.return_value
         conn.getresponse.return_value.status = 200
         conn.getresponse.return_value.read.return_value = b'{"id":123}'
-        self.assertEqual(self.submit(b, c, r.metadata(c, 'test changes'), 'dummy-token', factory), 123)
+        self.assertEqual(self.submit(b, c, curseforge_api.metadata(c, 'test changes'), 'dummy-token', factory), 123)
         method, path, body, headers = conn.request.call_args.args
         self.assertEqual(method, 'POST')
         self.assertEqual(path, '/api/projects/1/upload-file')
@@ -256,7 +257,7 @@ class ReleaseTests(unittest.TestCase):
             response.reason = 'dummy-token user@example.invalid'
             response.read.return_value = b'X-Api-Token: dummy-token user@example.invalid'
             conn.close.side_effect = OSError('dummy-token')
-            with self.subTest(status=status), self.assertRaises(r.SubmissionError) as error:
+            with self.subTest(status=status), self.assertRaises(curseforge_api.SubmissionError) as error:
                 self.submit(b, c, {}, 'dummy-token', factory)
             self.assertEqual(error.exception.diagnostics, {
                 'category': 'http_non_success', 'phase': 'response_headers',
@@ -283,7 +284,7 @@ class ReleaseTests(unittest.TestCase):
             response.status = 200
             target = response.read if phase == 'read' else getattr(conn, phase)
             target.side_effect = failure
-            with self.subTest(phase=phase, category=category), self.assertRaises(r.SubmissionError) as error:
+            with self.subTest(phase=phase, category=category), self.assertRaises(curseforge_api.SubmissionError) as error:
                 self.submit(b, c, {}, 'dummy-token', factory)
             self.assertEqual(error.exception.diagnostics['category'], category)
             self.assertEqual(error.exception.diagnostics['http_status'], status)
@@ -292,7 +293,7 @@ class ReleaseTests(unittest.TestCase):
             conn.request.assert_called_once()
             conn.close.assert_called_once()
         factory = Mock(side_effect=OSError('dummy-token'))
-        with self.assertRaises(r.SubmissionError) as error:
+        with self.assertRaises(curseforge_api.SubmissionError) as error:
             self.submit(b, c, {}, 'dummy-token', factory)
         self.assertEqual(error.exception.diagnostics['phase'], 'connection_setup')
 
@@ -307,7 +308,7 @@ class ReleaseTests(unittest.TestCase):
             response = conn.getresponse.return_value
             response.status = 201
             response.read.return_value = body
-            with self.subTest(category=category), self.assertRaises(r.SubmissionError) as error:
+            with self.subTest(category=category), self.assertRaises(curseforge_api.SubmissionError) as error:
                 self.submit(b, c, {}, 'dummy-token', factory)
             self.assertEqual(error.exception.diagnostics['category'], category)
             self.assertEqual(error.exception.diagnostics['http_status'], 201)
@@ -324,24 +325,24 @@ class ReleaseTests(unittest.TestCase):
                           'validationErrors': [{'field': 'releaseType', 'code': 'required',
                                                 'message': 'user@example.invalid'},
                                                {'field': 'user@example.invalid', 'code': 'private'}]})
-        self.assertEqual(r.safe_api_error(raw), {
+        self.assertEqual(curseforge_api.safe_api_error(raw), {
             'response_format': 'json_object', 'error_code': 400,
             'validation_fields': ['gameVersions', 'releaseType'],
             'validation_codes': ['invalid_value', 'required']})
         for raw in (b'private non-json dummy-token', b'a' * 65537,
                     b'{"errorCode":"dummy-token","errors":{"password":["dummy-token"]}}',
                     b'{"errorCode":123456789,"message":"user@example.invalid"}'):
-            result = json.dumps(r.safe_api_error(raw))
+            result = json.dumps(curseforge_api.safe_api_error(raw))
             for text in ('dummy-token', 'password', 'user@example.invalid', '123456789'):
                 self.assertNotIn(text, result)
 
     def test_protocol_diagnostic_keeps_parent_approval_reason(self):
-        result=r.safe_api_error(json.dumps({'errorCode':1013,'errorMessage':'Only approved files can be used as parent file.'}))
+        result=curseforge_api.safe_api_error(json.dumps({'errorCode':1013,'errorMessage':'Only approved files can be used as parent file.'}))
         self.assertEqual(result['diagnostic_messages'],['Only approved files can be used as parent file .'])
         self.assertEqual(result['error_code'],1013)
     def test_protocol_diagnostic_redacts_reflected_secrets_urls_and_unknown_values(self):
         raw=json.dumps({'errorMessage':'Invalid parentFileID: approved https://private.invalid/a?token=abc user@example.invalid 123456 /private/path unknownvalue'})
-        result=r.safe_api_error(raw,secrets=('approved',))
+        result=curseforge_api.safe_api_error(raw,secrets=('approved',))
         text=json.dumps(result)
         for private in ('approved','private.invalid','user@example','123456','unknownvalue','private/path'):
             self.assertNotIn(private,text)
@@ -349,7 +350,7 @@ class ReleaseTests(unittest.TestCase):
     def test_error_transport_passes_token_to_diagnostic_redaction(self):
         b,c=self.fixture();factory=Mock();response=factory.return_value.getresponse.return_value
         response.status=400;response.read.return_value=b'{"message":"Invalid token approved"}'
-        with self.assertRaises(r.SubmissionError) as err:self.submit(b,c,{},'approved',factory)
+        with self.assertRaises(curseforge_api.SubmissionError) as err:self.submit(b,c,{},'approved',factory)
         self.assertNotIn('approved',json.dumps(err.exception.diagnostics))
         self.assertIn('Invalid token',json.dumps(err.exception.diagnostics))
 
@@ -359,18 +360,20 @@ class ReleaseTests(unittest.TestCase):
         conn = factory.return_value
         conn.getresponse.return_value.status = 400
         conn.getresponse.return_value.read.side_effect = TimeoutError('dummy-token')
-        with self.assertRaises(r.SubmissionError) as error:
+        with self.assertRaises(curseforge_api.SubmissionError) as error:
             self.submit(b, c, {}, 'dummy-token', factory)
         self.assertEqual(error.exception.diagnostics['http_status'], 400)
         self.assertEqual(error.exception.diagnostics['category'], 'http_non_success')
-        self.assertEqual(error.exception.diagnostics['response_summary']['response_format'], 'read_failed')
+        response_summary = error.exception.diagnostics['response_summary']
+        assert isinstance(response_summary, dict)
+        self.assertEqual(response_summary['response_format'], 'read_failed')
         conn.request.assert_called_once()
 
     def test_nested_error_codes_and_authentication_hints_never_retain_messages(self):
         raw = json.dumps({'Error': {'ErrorCode': 1009,
                                    'ErrorMessage': 'Invalid API token: dummy-token user@example.invalid'},
                           'ModelState': {'Metadata.GameVersions[0]': ['private response']}})
-        result = r.safe_api_error(raw)
+        result = curseforge_api.safe_api_error(raw)
         self.assertEqual(result['error_code'], 1009)
         self.assertEqual(result['message_hints'], ['invalid_authentication'])
         self.assertEqual(result['validation_fields'], ['gameVersions'])

@@ -6,14 +6,14 @@ Temporary packwiz metadata is export-only; no fake MOD hashes or downloads.
 import argparse
 import hashlib
 import json
-from pathlib import Path
 import re
 import subprocess
 import tempfile
 import zipfile
+from pathlib import Path
 
-import release as r
 import pack_io as pack
+import pack_validation as r
 
 MODULE='v0.0.0-20260218225342-dfd8b68a4796'
 MODULE_SUM='h1:e6WSGD9fo7V8sbxGNOZiBHX6HnlBezOcQxVBZD6R0fM='
@@ -49,12 +49,6 @@ def load_inputs(root=Path('pack')):
     migration=r.parse_json((root/'migration.json').read_bytes())
     r.need(migration['schema_version']==1 and migration['module_version']==MODULE and
         migration['go_version']==GO_VERSION,'builder pin differs')
-    if meta['version']==migration['migration_version']:
-        r.need({n:digest(b) for n,b in overrides.items()}==migration['override_sha256'],
-            'initial migration overrides differ from reviewed App source')
-        for kind in pack.KINDS:
-            r.need(digest(json.dumps(refs[kind],sort_keys=True).encode())==migration['reference_sha256'][kind],
-                'initial migration reference difference')
     hashes={n:digest(b) for n,b in overrides.items()}
     source_sha=digest(json.dumps({'metadata':meta,'refs':refs,'overrides':hashes},sort_keys=True).encode())
     cfg=runtime_config(meta,'0'*64)
@@ -150,26 +144,6 @@ def build(root,output,binary,go='go'):
     verify_client(client,receipt,inputs)
     (output/'client.json').write_text(json.dumps(receipt,indent=2)+'\n')
     return client,receipt
-
-
-def compare_builds(a,b):
-    # Upstream iterates Go maps: reference/modlist order may vary. Preserve its
-    # manifest bytes, compare semantics, and publish only the saved run artifact.
-    for report in ('client.json','server.json'):
-        left=r.parse_json((a/report).read_bytes());right=r.parse_json((b/report).read_bytes())
-        r.need(left['version']==right['version'],'rebuild version differs')
-        with zipfile.ZipFile(a/left['filename']) as x,zipfile.ZipFile(b/right['filename']) as y:
-            r.need(set(x.namelist())==set(y.namelist()),'rebuild entry set differs')
-            for name in x.namelist():
-                if name in ('manifest.json','client/manifest.json'):
-                    m=r.parse_json(x.read(name));n=r.parse_json(y.read(name))
-                    m['files']=sorted(m['files'],key=lambda f:f['projectID'])
-                    n['files']=sorted(n['files'],key=lambda f:f['projectID'])
-                    r.need(m==n,'rebuild manifest content differs')
-                elif name=='modlist.html':
-                    r.need(sorted(x.read(name).splitlines())==sorted(y.read(name).splitlines()),'rebuild MOD list differs')
-                else:
-                    r.need(x.read(name)==y.read(name),'rebuild settings differ')
 
 
 def main():

@@ -1,6 +1,7 @@
 """Shared fixed-reference and bounded ZIP input checks."""
 import re
-from release import MAX_ZIP, need, positive
+
+from pack_validation import MAX_ZIP, need, positive
 
 KINDS = ('client', 'server')
 UNWANTED = re.compile(r'(?i)(?:/benchmarks?/|/chunky/(?:tasks/|[^/]+\.(?:csv|properties)$)|sodium-fingerprint\.json$|'

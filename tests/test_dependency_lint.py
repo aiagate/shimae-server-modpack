@@ -1,9 +1,10 @@
-from contextlib import redirect_stderr, redirect_stdout
 import io
+import json
 import os
-from pathlib import Path
 import sys
 import unittest
+from contextlib import redirect_stderr, redirect_stdout
+from pathlib import Path
 from zipfile import ZipFile
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts'))
@@ -19,7 +20,7 @@ def jar(**entries):
     return result.getvalue()
 
 
-def mod(mod_id, version, extra='', **entries: bytes):
+def mod(mod_id, version, extra='', /, **entries: str | bytes):
     return jar(**{'META-INF/neoforge.mods.toml': f'[[mods]]\nmodId="{mod_id}"\nversion="{version}"\n{extra}', **entries})
 
 
@@ -56,6 +57,15 @@ side="BOTH"
         conflicts = lint.compare([old, compatible, union, boundary], os.environ.get('JAVA', 'java'),
                                  Path(os.environ['DEP_LINT_LIBS']), '1.21.1')
         self.assertEqual(conflicts, [old, boundary])
+
+    @unittest.skipUnless(os.environ.get('DEP_LINT_LIBS'), 'set DEP_LINT_LIBS to run Maven integration')
+    def test_jarjar_ranges_exclude_the_incompatible_apollib_candidate(self):
+        records = json.loads(lint.LOCK.read_text())
+        mods = records['686836-8855043']['mods'] + records['936015-9170709']['mods']
+        eligible = lint.exclude_ineligible_bundles(
+            mods, os.environ.get('JAVA', 'java'), Path(os.environ['DEP_LINT_LIBS']), '1.21.1',
+        )
+        self.assertEqual([mod['version'] for mod in eligible if mod['id'] == 'apollib'], ['1.2.0'])
 
     def test_absent_optional_mod_does_not_fail(self):
         source = mod('example', '1', '''

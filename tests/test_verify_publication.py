@@ -1,9 +1,12 @@
-import sys,unittest
+import sys
+import unittest
 from pathlib import Path
+
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'scripts'))
+import pack_validation
+import submit_pack as p
 import verify_publication as v
-import publish_pair as p
-import release
+
 
 class PublicVerificationTests(unittest.TestCase):
     def setUp(self):
@@ -25,7 +28,8 @@ class PublicVerificationTests(unittest.TestCase):
         self.assertEqual(r['required_action']['server_file_id'],12)
         self.assertIs(r['required_action']['retry_submission'],False)
     def test_unpublished_server_is_waiting_not_complete(self):
-        self.server=None;r=self.assess();self.assertEqual(r['status'],'waiting_for_moderation')
+        r = v.assess(self.identity, 11, 12, self.assets, self.client, None, self.children)
+        self.assertEqual(r['status'], 'waiting_for_moderation')
         self.assertFalse(r['publication_complete'])
     def test_pending_server_is_waiting(self):
         self.server['status']=1;self.assertEqual(self.assess()['status'],'waiting_for_moderation')
@@ -38,7 +42,7 @@ class PublicVerificationTests(unittest.TestCase):
         self.assertFalse(self.assess()['server_pack_classification_verified'])
     def test_public_file_identity_mismatch_fails_closed(self):
         self.server['fileLength']=999
-        with self.assertRaises(release.Invalid):self.assess()
+        with self.assertRaises(pack_validation.Invalid):self.assess()
     def test_count_boolean_or_counter_mismatch_is_not_type_evidence(self):
         self.client['additionalServerPackFilesCount']=True
         self.assertFalse(self.assess()['server_pack_classification_verified'])
