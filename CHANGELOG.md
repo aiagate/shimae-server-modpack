@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- クライアントとサーバーで Tracks+ を Bits ’n’ Tracks Community Edition 3.0.4 に置換。Bits ’n’ Bobs を 2.3.5 に更新し、Azimuth API 1.4.10 と Strut Your Stuff 1.3.1 を追加。
+- Bits ’n’ Bobs 2.3.5 と競合する TFMG 1.2.0、および TFMG の Sable 連携を除外。既存ワールド向けに Remap IDs 2.1.0 と TFMG の自然生成ブロック14種の置換設定を追加。
+
 ## 0.1.1
 
 - Carry On の `forbiddenTiles` に Create 系アドオン 46 件を追加。`simulated:*`、`aeronautics:*`、`railways:*`、`tfmg:*` など `create` で始まらない mod ID のブロックが持ち上げ可能だった問題を修正しました。

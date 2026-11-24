@@ -50,3 +50,13 @@ MOD の固定参照を追加・更新するときは、CurseForge から**指定
 ## ライセンス
 
 自作の設定への寄与、スクリプト、文書には [MIT License](LICENSE) を適用します。第三者の MOD、Shader、ライブラリ、生成された設定本文やコメントの権利は各作者に帰属します。適用範囲と配布物内の通知は [THIRD-PARTY-NOTICES.txt](pack/overrides/THIRD-PARTY-NOTICES.txt)を参照してください。
+
+## TFMG を含むワールドの移行
+
+TFMG 1.2.0 に由来する自然生成ブロックの置換先は [tfmg-worldgen.json](pack/overrides/config/remapids/remaps/tfmg-worldgen.json) を参照してください。TFMG の [1.2.0 ソース](https://github.com/DrMango14/Create-The_Factory_Must_Grow/tree/e55d31525382ba7106a82ee5db90c7a2571f87ca) の鉱床データと油田・油井の生成コードをもとにしています。
+
+パックにはクライアント・サーバー両方に [Remap IDs 2.1.0](https://www.curseforge.com/minecraft/mc-mods/remap-ids/files/8638635) と置換設定が入ります。サーバー停止中にワールドをバックアップし、更新後の構成でコピーを開いてください。上書き導入では、旧 TFMG とその Sable 連携、Tracks+、旧 Bits ’n’ Bobs の JAR を先に退避します。
+
+置換は各チャンクの読み込み時に適用され、チャンクが保存されると置換先の ID が記録されます。未ロードのチャンクにも適用できるよう、生成済みチャンクの移行が済むまでは Remap IDs と置換設定を使用してください。
+
+置換はブロック ID 単位です。オーバーワールドとネザーに共通する Fireclay や、地表にも出る原油ブロックには同じ置換先を使います。原油は石に変わるため、地表の油だまりも石になります。リストは自然生成されたブロックを対象とし、TFMG の機械、アイテム、ブロックエンティティのデータは移行対象外です。

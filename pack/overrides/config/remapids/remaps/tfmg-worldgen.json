@@ -1,0 +1,102 @@
+{
+  "remaps": [
+    {
+      "source": "tfmg:lead_ore",
+      "target": "minecraft:stone",
+      "types": [
+        "block"
+      ]
+    },
+    {
+      "source": "tfmg:lithium_ore",
+      "target": "minecraft:stone",
+      "types": [
+        "block"
+      ]
+    },
+    {
+      "source": "tfmg:nickel_ore",
+      "target": "minecraft:stone",
+      "types": [
+        "block"
+      ]
+    },
+    {
+      "source": "tfmg:deepslate_lead_ore",
+      "target": "minecraft:deepslate",
+      "types": [
+        "block"
+      ]
+    },
+    {
+      "source": "tfmg:deepslate_lithium_ore",
+      "target": "minecraft:deepslate",
+      "types": [
+        "block"
+      ]
+    },
+    {
+      "source": "tfmg:deepslate_nickel_ore",
+      "target": "minecraft:deepslate",
+      "types": [
+        "block"
+      ]
+    },
+    {
+      "source": "tfmg:bauxite",
+      "target": "minecraft:stone",
+      "types": [
+        "block"
+      ]
+    },
+    {
+      "source": "tfmg:galena",
+      "target": "minecraft:stone",
+      "types": [
+        "block"
+      ]
+    },
+    {
+      "source": "tfmg:lignite",
+      "target": "minecraft:deepslate",
+      "types": [
+        "block"
+      ]
+    },
+    {
+      "source": "tfmg:fireclay",
+      "target": "minecraft:stone",
+      "types": [
+        "block"
+      ]
+    },
+    {
+      "source": "tfmg:sulfur",
+      "target": "minecraft:netherrack",
+      "types": [
+        "block"
+      ]
+    },
+    {
+      "source": "tfmg:oil_deposit",
+      "target": "minecraft:stone",
+      "types": [
+        "block"
+      ]
+    },
+    {
+      "source": "tfmg:fossilstone",
+      "target": "minecraft:stone",
+      "types": [
+        "block"
+      ]
+    },
+    {
+      "source": "tfmg:crude_oil",
+      "target": "minecraft:stone",
+      "types": [
+        "block"
+      ]
+    }
+  ]
+}
